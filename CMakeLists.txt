@@ -60,6 +60,17 @@ set(CMAKE_CXX_FLAGS_PROFILE   "-O3 -pg -g -ftime-trace")
 set(CMAKE_CXX_FLAGS_FASTDEBUG "-O3 -g")
 set(CMAKE_CXX_FLAGS_DEBUG     "-O0 -g -U_FORTIFY_SOURCE")
 
+option(EDM_ENABLED "Enable Execution Driven Mode" OFF)
+set(DEFAULT_BACKEND "" CACHE STRING "Default EDM backend name")
+
+if(EDM_ENABLED)
+  add_compile_definitions(EDM_ENABLED)
+
+  if(DEFAULT_BACKEND)
+    add_compile_definitions(DEFAULT_EDM_BACKEND="${DEFAULT_BACKEND}")
+  endif()
+endif()
+
 # Include directories
 include_directories (core mss sim)
 include_directories (SYSTEM fsl)
