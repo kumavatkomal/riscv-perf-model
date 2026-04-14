@@ -29,4 +29,4 @@ namespace olympia::edm
         virtual void flush(CoreId core_id, HartId hart_id, const EDMCheckpoint & checkpoint) = 0;
     };
 
-}
+} // namespace olympia::edm

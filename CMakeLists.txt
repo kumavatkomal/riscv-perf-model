@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 set (CMAKE_CXX_STANDARD 20)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(olympia CXX)
 
@@ -74,7 +75,7 @@ endif()
 # Include directories
 include_directories (core mss sim)
 include_directories (SYSTEM fsl)
-include_directories (SYSTEM mavis mavis/elfio)
+include_directories (SYSTEM mavis mavis/elfio mavis/simde mavis/int128/include)
 include_directories (SYSTEM stf_lib)
 
 # Include dead header files that we can't remove just yet

@@ -2,6 +2,7 @@
 #include "InstGenerator.hpp"
 #include "mavis/Mavis.h"
 #include "mavis/JSONUtils.hpp"
+#include <sparta/log/MessageSource.hpp>
 
 namespace olympia
 {
@@ -25,6 +26,15 @@ namespace olympia
             std::cout << "olympia: STF file input detected" << std::endl;
             return std::unique_ptr<InstGenerator>(
                 new TraceInstGenerator(info_logger, mavis_facade, filename, skip_nonuser_mode));
+        }
+
+        const std::string elf_ext = "elf";
+        if ((filename.size() > elf_ext.size())
+            && filename.substr(filename.size() - elf_ext.size()) == elf_ext)
+        {
+            std::cout << "olympia: ELF file input detected - running edm" << std::endl;
+            return std::unique_ptr<EDMInstGenerator>(
+                new EDMInstGenerator(info_logger, mavis_facade, filename););
         }
 
         // Dunno what it is...
@@ -304,4 +314,15 @@ namespace olympia
         return nullptr;
     }
 
+    EDMInstGenerator::EDMInstGenerator(sparta::log::MessageSource & info_logger,
+                                       MavisType* mavis_facade, const std::string & filename) :
+        InstGenerator(info_logger, mavis_facade)
+    {
+
+    }
+
+    InstPtr EDMInstGenerator::getNextInst(const sparta::Clock* clk)
+    {
+        
+    }
 } // namespace olympia

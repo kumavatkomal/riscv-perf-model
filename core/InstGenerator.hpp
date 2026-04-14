@@ -18,6 +18,7 @@
 #include "sparta/utils/LogUtils.hpp"
 
 #include "stf-inc/stf_inst_reader.hpp"
+#include "edm/EDMInterface.hpp"
 
 namespace olympia
 {
@@ -91,5 +92,23 @@ namespace olympia
 
         // Always points to the *next* stf inst
         stf::STFInstReader::iterator next_it_;
+    };
+
+    class EDMInstGenerator : public InstGenerator
+    {
+      public:
+        // Create an EDMInstGenerator with the mavis facade
+        // and the filename - that is the name of the binary
+        // to be passed onto the backend
+        EDMInstGenerator(sparta::log::MessageSource & info_logger, MavisType* mavis_facade,
+                         const std::string & filename);
+
+        InstPtr getNextInst(const sparta::Clock* clk) override final;
+
+        bool isDone() const override final;
+        void reset(const InstPtr &, const bool) override final;
+
+      private:
+        std::unique_ptr<edm::EDMInterface> edm_;
     };
 }
