@@ -105,6 +105,10 @@ namespace olympia
         sparta::DataOutPort<InstPtr> out_rob_retire_ack_         {&unit_port_set_, "out_rob_retire_ack"};
         sparta::DataOutPort<InstGroupPtr> out_rob_retire_ack_rename_  {&unit_port_set_, "out_rob_retire_ack_rename"};
 
+        sparta::DataOutPort<InstPtr> out_rob_retire_ack_edm_ {&unit_port_set_, "out_rob_retire_ack_edm"};
+
+        sparta::DataOutPort<InstPtr> out_rob_flush_edm_ {&unit_port_set_ , "out_rob_flush_edm"};
+
         // For flush
         sparta::DataInPort<FlushManager::FlushingCriteria> in_reorder_flush_
              {&unit_port_set_, "in_reorder_flush", sparta::SchedulingPhase::Flush, 1};

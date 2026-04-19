@@ -291,6 +291,8 @@ namespace olympia
             // Remove from store buffer -> don't actually need to send cache request
             store_buffer_.erase(store_buffer_.begin());
             ++stores_retired_;
+
+            out_lsu_commit_store_edm_.send(inst_ptr);
         }
 
         updateIssuePriorityAfterStoreInstRetire_(inst_ptr);
@@ -1510,6 +1512,8 @@ namespace olympia
                 auto delete_iter = sb_iter++;
                 // store buffer didn't return an iterator
                 store_buffer_.erase(delete_iter);
+
+                out_lsu_drop_store_edm_.send(inst_ptr);
                 ILOG("Flushed store from store buffer: " << inst_ptr);
             }
             else

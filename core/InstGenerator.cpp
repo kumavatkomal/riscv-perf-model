@@ -1,22 +1,26 @@
 
 #include "InstGenerator.hpp"
+#include "EDMTypes.hpp"
+#include "EDMFactory.hpp"
 #include "mavis/Mavis.h"
 #include "mavis/JSONUtils.hpp"
 #include <sparta/log/MessageSource.hpp>
+#include <sparta/utils/SpartaAssert.hpp>
 
 namespace olympia
 {
-    std::unique_ptr<InstGenerator> InstGenerator::createGenerator(sparta::log::MessageSource & info_logger,
-                                                                  MavisType* mavis_facade,
-                                                                  const std::string & filename,
-                                                                  const bool skip_nonuser_mode)
+    std::unique_ptr<InstGenerator>
+    InstGenerator::createGenerator(sparta::log::MessageSource & info_logger,
+                                   MavisType* mavis_facade, const std::string & filename,
+                                   const bool skip_nonuser_mode)
     {
         const std::string json_ext = "json";
         if ((filename.size() > json_ext.size())
             && filename.substr(filename.size() - json_ext.size()) == json_ext)
         {
             std::cout << "olympia: JSON file input detected" << std::endl;
-            return std::unique_ptr<InstGenerator>(new JSONInstGenerator(info_logger, mavis_facade, filename));
+            return std::unique_ptr<InstGenerator>(
+                new JSONInstGenerator(info_logger, mavis_facade, filename));
         }
 
         const std::string stf_ext = "stf"; // Should cover both zstf and stf
@@ -34,7 +38,7 @@ namespace olympia
         {
             std::cout << "olympia: ELF file input detected - running edm" << std::endl;
             return std::unique_ptr<EDMInstGenerator>(
-                new EDMInstGenerator(info_logger, mavis_facade, filename););
+                new EDMInstGenerator(info_logger, mavis_facade, filename));
         }
 
         // Dunno what it is...
@@ -46,8 +50,7 @@ namespace olympia
     ////////////////////////////////////////////////////////////////////////////////
     // JSON Inst Generator
     JSONInstGenerator::JSONInstGenerator(sparta::log::MessageSource & info_logger,
-                                         MavisType* mavis_facade,
-                                         const std::string & filename) :
+                                         MavisType* mavis_facade, const std::string & filename) :
         InstGenerator(info_logger, mavis_facade)
     {
         std::ifstream fs;
@@ -74,13 +77,13 @@ namespace olympia
         // Validate that the saved index is within bounds
         sparta_assert(saved_index < n_insts_,
                       "Rewind index " << saved_index << " is out of bounds for JSON trace with "
-                      << n_insts_ << " instructions.");
+                                      << n_insts_ << " instructions.");
 
         curr_inst_index_ = saved_index;
         program_id_ = inst_ptr->getProgramID();
 
-        ILOG("Rewinding JSON trace to instruction pid:" << program_id_
-             << " uid:" << inst_ptr->getUniqueID() << " index:" << curr_inst_index_
+        ILOG("Rewinding JSON trace to instruction pid:"
+             << program_id_ << " uid:" << inst_ptr->getUniqueID() << " index:" << curr_inst_index_
              << (skip ? " (skipping to next)" : " (inclusive)"));
 
         if (skip)
@@ -118,9 +121,10 @@ namespace olympia
                                        const mavis::InstMetaData::OperandFieldID operand_field_id,
                                        const mavis::InstMetaData::OperandTypes operand_type)
             {
-                if (const auto it = jinst.find(key);  it != jinst.end())
+                if (const auto it = jinst.find(key); it != jinst.end())
                 {
-                    operands.addElement(operand_field_id, operand_type, boost::json::value_to<uint64_t>(it->value()));
+                    operands.addElement(operand_field_id, operand_type,
+                                        boost::json::value_to<uint64_t>(it->value()));
                 }
             };
 
@@ -160,8 +164,7 @@ namespace olympia
 
             if (const auto it = jinst.find("vaddr"); it != jinst.end())
             {
-                uint64_t vaddr =
-                    std::strtoull(it->value().as_string().c_str(), nullptr, 0);
+                uint64_t vaddr = std::strtoull(it->value().as_string().c_str(), nullptr, 0);
                 inst->setTargetVAddr(vaddr);
             }
 
@@ -169,8 +172,7 @@ namespace olympia
             if (const auto it = jinst.find("vtype"); it != jinst.end())
             {
                 // immediate, so decode from hex
-                uint64_t vtype =
-                    std::strtoull(it->value().as_string().c_str(), nullptr, 0);
+                uint64_t vtype = std::strtoull(it->value().as_string().c_str(), nullptr, 0);
                 std::string binaryString = std::bitset<32>(vtype).to_string();
                 uint32_t sew = std::pow(2, std::stoi(binaryString.substr(26, 3), nullptr, 2)) * 8;
                 uint32_t lmul = std::pow(2, std::stoi(binaryString.substr(29, 3), nullptr, 2));
@@ -207,8 +209,7 @@ namespace olympia
     ////////////////////////////////////////////////////////////////////////////////
     // STF Inst Generator
     TraceInstGenerator::TraceInstGenerator(sparta::log::MessageSource & info_logger,
-                                           MavisType* mavis_facade,
-                                           const std::string & filename,
+                                           MavisType* mavis_facade, const std::string & filename,
                                            const bool skip_nonuser_mode) :
         InstGenerator(info_logger, mavis_facade)
     {
@@ -250,15 +251,15 @@ namespace olympia
         // have been read since this instruction was fetched, the iterator becomes invalid
         sparta_assert(saved_it.valid(),
                       "Rewind iterator is no longer valid for instruction uid:"
-                      << inst_ptr->getUniqueID() << " pid:" << inst_ptr->getProgramID()
-                      << " - instruction has moved outside the STF buffer window. "
-                      << "Consider increasing the STF buffer size (currently 4096).");
+                          << inst_ptr->getUniqueID() << " pid:" << inst_ptr->getProgramID()
+                          << " - instruction has moved outside the STF buffer window. "
+                          << "Consider increasing the STF buffer size (currently 4096).");
 
         next_it_ = saved_it;
         program_id_ = inst_ptr->getProgramID();
 
-        ILOG("Rewinding STF trace to instruction pid:" << program_id_
-             << " uid:" << inst_ptr->getUniqueID()
+        ILOG("Rewinding STF trace to instruction pid:"
+             << program_id_ << " uid:" << inst_ptr->getUniqueID()
              << (skip ? " (skipping to next)" : " (inclusive)"));
 
         if (skip)
@@ -316,13 +317,167 @@ namespace olympia
 
     EDMInstGenerator::EDMInstGenerator(sparta::log::MessageSource & info_logger,
                                        MavisType* mavis_facade, const std::string & filename) :
-        InstGenerator(info_logger, mavis_facade)
+        InstGenerator(info_logger, mavis_facade),
+        edm_(edm::EDMBackendFactory::create(filename, 1000, {{}}, "pegasus-cosim.db", 1000))
     {
-
     }
 
     InstPtr EDMInstGenerator::getNextInst(const sparta::Clock* clk)
     {
-        
+        if (SPARTA_EXPECT_FALSE(isDone()))
+            return nullptr;
+
+        const edm::Addr next_pc = edm_->peekNextPc(0, 0);
+        const edm::SteeringDecision decision = evaluateRules_(next_pc);
+
+        edm::InstructionInfo info;
+        switch (decision.action)
+        {
+        case edm::SteeringDecision::Action::STEP_NORMAL:
+            info = edm_->step(0, 0);
+            break;
+        case edm::SteeringDecision::Action::STEP_WITH_OVERRIDE:
+            info = edm_->stepWithOverridePc(0, 0, *decision.override_pc);
+            break;
+        }
+
+        if (info.ends_simulation)
+            return nullptr;
+
+        // Save a checkpoint for every branch so reset() can
+        // find the right EDMCheckpoint to flush back to
+        if (info.is_branch)
+        {
+            saveCheckpoint_(info, decision);
+        }
+
+        InstPtr inst = mavis_facade_->makeInst(info.opcode, clk);
+        try
+        {
+            inst->setPC(info.pc);
+            inst->setUniqueID(++unique_id_);
+            inst->setProgramID(program_id_++);
+
+            // iss_uid is the only identifier that crosses the
+            // agnostic boundary — backend interprets it internally
+            inst->setRewindIterator<uint64_t>(info.iss_uid);
+
+            inst->setCoF(info.is_branch);
+            if (info.is_branch)
+            {
+                inst->setTakenBranch(info.is_taken);
+                inst->setTargetVAddr(info.next_pc);
+            }
+            if (info.is_load || info.is_store)
+            {
+                if (!info.mem_reads.empty())
+                    inst->setTargetVAddr(info.mem_reads.front().vaddr);
+                else if (!info.mem_writes.empty())
+                    inst->setTargetVAddr(info.mem_writes.front().vaddr);
+            }
+            return inst;
+        }
+        catch (std::exception & excpt)
+        {
+            std::cerr << "ERROR: Mavis failed decoding: 0x" << std::hex << info.opcode << " PC: 0x"
+                      << info.pc << " iss_uid: " << info.iss_uid << " err: " << excpt.what()
+                      << std::endl;
+            throw;
+        }
+    }
+
+    bool EDMInstGenerator::isDone() const { return edm_->isFinished(0, 0); }
+
+    void EDMInstGenerator::reset(const InstPtr & inst_ptr, const bool skip)
+    {
+        const uint64_t saved_iss_uid = inst_ptr->getRewindIterator<uint64_t>();
+
+        // Find the checkpoint matching this instruction
+        auto it = std::find_if(checkpoint_queue_.begin(), checkpoint_queue_.end(),
+                               [saved_iss_uid](const edm::EDMCheckpoint & cp)
+                               { return cp.iss_uid == saved_iss_uid; });
+
+        sparta_assert(it != checkpoint_queue_.end(), "reset: no checkpoint found for iss_uid "
+                                                         << saved_iss_uid
+                                                         << " pid:" << inst_ptr->getProgramID()
+                                                         << " uid:" << inst_ptr->getUniqueID());
+
+        program_id_ = inst_ptr->getProgramID();
+
+        ILOG("Rewinding EDM to instruction pid:"
+             << program_id_ << " uid:" << inst_ptr->getUniqueID() << " iss_uid:" << saved_iss_uid
+             << (skip ? " (skipping to next)" : " (inclusive)"));
+
+        // Pass the full checkpoint — backend adapter does its own
+        // lookup (EventAccessor for Pegasus, tag for Whisper)
+        edm_->flush(0, 0, *it);
+
+        // Prune this checkpoint and everything younger
+        checkpoint_queue_.erase(it, checkpoint_queue_.end());
+
+        if (skip)
+            ++program_id_;
+    }
+
+    void EDMInstGenerator::saveCheckpoint_(const edm::InstructionInfo & info,
+                                           const edm::SteeringDecision & decision)
+    {
+        edm::EDMCheckpoint cp;
+        cp.core_id = 0;
+        cp.hart_id = 0;
+        cp.olympia_inst_uid = unique_id_;
+        cp.iss_uid = info.iss_uid;
+        cp.branch_pc = info.pc;
+        cp.correct_path_pc = info.next_pc;
+        cp.current_path_pc = decision.override_pc.value_or(info.next_pc);
+        cp.is_wrong_path_injection = decision.is_wrong_path;
+        checkpoint_queue_.push_back(cp);
+    }
+
+    edm::SteeringDecision EDMInstGenerator::evaluateRules_(const edm::Addr /*next_pc*/)
+    {
+        // Stub — steering rule engine goes here later (yaml config).
+        // For now always step normally.
+        return edm::SteeringDecision{edm::SteeringDecision::Action::STEP_NORMAL, 0};
+    }
+
+    // ---------------------------------------------------------------
+    // Port handlers — called by Fetch, fully agnostic to backend type
+    // ---------------------------------------------------------------
+
+    void EDMInstGenerator::onRetire_(const InstPtr & inst)
+    {
+        const uint64_t iss_uid = inst->getRewindIterator<uint64_t>();
+        edm_->commitInstruction(0, 0, iss_uid);
+
+        // Prune the matching checkpoint from the front of the queue
+        // now that this instruction has safely retired
+        if (!checkpoint_queue_.empty() && checkpoint_queue_.front().iss_uid == iss_uid)
+        {
+            checkpoint_queue_.pop_front();
+        }
+    }
+
+    void EDMInstGenerator::onFlush_(const InstPtr & inst)
+    {
+        // ROB calls this per squashed instruction youngest→oldest.
+        // We do NOT call edm_->flush() here — reset() owns that
+        // with the full checkpoint context. Here we only clean up
+        // the checkpoint queue entry for this instruction if one exists.
+        const uint64_t iss_uid = inst->getRewindIterator<uint64_t>();
+        checkpoint_queue_.erase(std::remove_if(checkpoint_queue_.begin(), checkpoint_queue_.end(),
+                                               [iss_uid](const edm::EDMCheckpoint & cp)
+                                               { return cp.iss_uid == iss_uid; }),
+                                checkpoint_queue_.end());
+    }
+
+    void EDMInstGenerator::onRetireStore_(const InstPtr & inst)
+    {
+        edm_->commitStoreWrite(0, 0, inst->getRewindIterator<uint64_t>());
+    }
+
+    void EDMInstGenerator::onDropStore_(const InstPtr & inst)
+    {
+        edm_->dropStoreWrite(0, 0, inst->getRewindIterator<uint64_t>());
     }
 } // namespace olympia

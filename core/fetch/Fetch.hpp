@@ -103,6 +103,22 @@ namespace olympia
         sparta::DataInPort<uint32_t> in_icache_fetch_credits_
             {&unit_port_set_, "in_icache_fetch_credits", sparta::SchedulingPhase::Tick, 0};
 
+        sparta::DataInPort<InstPtr> in_rob_retire_ack_edm_ {&unit_port_set_, "in_rob_retire_ack_edm"};
+
+        sparta::DataInPort<InstPtr> in_rob_flush_edm_ {
+            &unit_port_set_, "in_rob_flush_edm"
+        };
+
+        sparta::DataInPort<InstPtr> in_lsu_commit_store_edm_{&unit_port_set_, "in_lsu_commit_store_edm"};
+
+        sparta::DataInPort<InstPtr> in_lsu_drop_store_edm_ {&unit_port_set_, "in_lsu_drop_store_edm"};
+
+
+        void onEDMRetire_(const InstPtr & isnt);
+        void onEDMFlush_(const InstPtr & inst);
+        void onEDMCommitStore_(const InstPtr & inst);
+        void onEDMDropStore_(const InstPtr & inst);
+        
         ////////////////////////////////////////////////////////////////////////////////
         // Instruction fetch
 

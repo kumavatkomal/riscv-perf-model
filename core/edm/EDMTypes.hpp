@@ -40,7 +40,7 @@ namespace olympia::edm
 
         Opcode opcode = 0;
         uint32_t opcode_size = 4;
-        std::string disasm;
+        std::string dasm;
 
         bool is_branch = false;
         bool is_taken = false;
@@ -48,6 +48,7 @@ namespace olympia::edm
         bool is_load = false;
         bool ends_simulation = false;
         bool is_wrong_path = false;
+        bool faulted = false;
 
         uint64_t iss_uid = std::numeric_limits<uint64_t>::max();
 

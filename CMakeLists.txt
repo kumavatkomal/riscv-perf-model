@@ -6,9 +6,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 project(olympia CXX)
 
 add_compile_options ( -Werror
-  -Wall -Wextra -Winline -Winit-self -Wno-unused-function
+  -Wall -Wextra -Winline -Winit-self -Wno-unused-function 
+  -Wno-error=unused-parameter -Wno-unused-parameter
   -Wuninitialized -Wno-sequence-point -Wno-inline -Wno-unknown-pragmas
-  -Woverloaded-virtual -Wno-unused-parameter -Wno-missing-field-initializers -pipe)
+  -Woverloaded-virtual -Wno-missing-field-initializers -pipe)
 
 ################################################################################
 # Set up Sparta
@@ -103,7 +104,7 @@ add_executable(olympia
   sim/OlympiaSim.cpp
   sim/main.cpp
 )
-target_link_libraries (olympia core mss SPARTA::sparta ${STF_LINK_LIBS})
+target_link_libraries (olympia -Wl,--start-group core mss ${STF_LINK_LIBS} zstd -Wl,--end-group SPARTA::sparta)
 
 if (CMAKE_BUILD_TYPE MATCHES "^[Rr]elease")
   target_compile_options (core    PUBLIC -flto)

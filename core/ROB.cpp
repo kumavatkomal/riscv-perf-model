@@ -100,6 +100,7 @@ namespace olympia
                 ILOG("flushing " << youngest_inst);
                 youngest_inst->setStatus(Inst::Status::FLUSHED);
                 reorder_buffer_.pop_back();
+                out_rob_flush_edm_.send(youngest_inst);
                 ++credits_to_send;
             }
             else
@@ -143,6 +144,7 @@ namespace olympia
                 {
                     out_rob_retire_ack_.send(ex_inst_ptr);
                 }
+                out_rob_retire_ack_edm_.send(ex_inst_ptr);
 
                 // All instructions count as 1 uop
                 ++num_uops_retired_;

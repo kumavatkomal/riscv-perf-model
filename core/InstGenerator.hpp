@@ -10,6 +10,7 @@
 #include <string>
 #include <memory>
 
+#include "EDMTypes.hpp"
 #include "Inst.hpp"
 #include "decode/MavisUnit.hpp"
 #include "mavis/JSONUtils.hpp"
@@ -108,7 +109,22 @@ namespace olympia
         bool isDone() const override final;
         void reset(const InstPtr &, const bool) override final;
 
+        // These functions will be called via the fetch's ports to make sure that the state of the backend and olympia are in sync 
+        
+        void onRetire_(const InstPtr& inst);
+        void onFlush_(const InstPtr & inst);
+        void onRetireStore_(const InstPtr & inst);
+        void onDropStore_ (const InstPtr & inst);
       private:
+        void saveCheckpoint_(const edm::InstructionInfo & info, const edm::SteeringDecision & decision);
+
+        edm::SteeringDecision evaluateRules_(const edm::Addr next_pc);
+
         std::unique_ptr<edm::EDMInterface> edm_;
+
+        uint64_t unique_id_ = 0;
+        uint64_t program_id_ = 0;
+
+        std::deque<edm::EDMCheckpoint> checkpoint_queue_;
     };
 }

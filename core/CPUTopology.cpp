@@ -339,6 +339,22 @@ olympia::CoreTopologySimple::CoreTopologySimple(){
         {
             "cpu.core*.flushmanager.ports.out_flush_lower",
             "cpu.core*.fetch.ports.in_fetch_flush_redirect"
+        },
+        {
+            "cpu.core*.rob.ports.out_rob_retire_ack_edm",
+            "cpu.core*.fetch.ports.in_rob_retire_ack_edm"
+        },
+        {
+            "cpu.core*.rob.ports.out_rob_flush_edm",
+            "cpu.core*.fetch.ports.in_rob_flush_edm"
+        },
+        {
+            "cpu.core*.lsu.ports.out_lsu_commit_store_edm",
+            "cpu.core*.fetch.ports.in_lsu_commit_store_edm"
+        },
+        {
+            "cpu.core*.lsu.ports.out_lsu_drop_store_edm",
+            "cpu.core*.fetch.ports.in_lsu_drop_store_edm"
         }
     };
 }
