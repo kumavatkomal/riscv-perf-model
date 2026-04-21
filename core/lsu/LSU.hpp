@@ -133,7 +133,7 @@ namespace olympia
         sparta::DataOutPort<InstPtr> out_lsu_commit_store_edm_{&unit_port_set_,
                                                                "out_lsu_commit_store_edm"};
         sparta::DataOutPort<InstPtr> out_lsu_drop_store_edm_{&unit_port_set_,
-                                                             "out_lsu_drop_store_emd"};
+                                                             "out_lsu_drop_store_edm"};
 
         ////////////////////////////////////////////////////////////////////////////////
         // Internal States

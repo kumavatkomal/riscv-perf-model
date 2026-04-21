@@ -23,10 +23,9 @@ if(DEFAULT_BACKEND STREQUAL "all" OR DEFAULT_BACKEND STREQUAL "pegasus" OR NOT D
 
     FetchContent_Declare(pegasus
         GIT_REPOSITORY https://github.com/sparcians/pegasus.git
-        GIT_TAG        main
-        GIT_SHALLOW    TRUE
+        GIT_TAG        5987b12
         USES_TERMINAL_DOWNLOAD TRUE
-        USES_TERMINAL_UPDATE   TRUE
+        USES_TERMINAL_UPDATE   TRUE`
         SOURCE_DIR  ${CMAKE_SOURCE_DIR}/core/edm/adapters/Pegasus/pegasus
     )
 
@@ -69,7 +68,7 @@ if(DEFAULT_BACKEND STREQUAL "all" OR DEFAULT_BACKEND STREQUAL "pegasus" OR NOT D
         ${PEGASUS_SOURCE_DIR}/cosim
         ${PEGASUS_SOURCE_DIR}/include
     )
-    target_link_libraries(edm PUBLIC pegasuslibs)
+    target_link_libraries(edm PUBLIC pegasuslibs pegasuscosimlib)
     target_compile_definitions(edm PUBLIC PEGASUS_AVAILABLE)
 endif()
 

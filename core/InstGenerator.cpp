@@ -318,14 +318,17 @@ namespace olympia
     EDMInstGenerator::EDMInstGenerator(sparta::log::MessageSource & info_logger,
                                        MavisType* mavis_facade, const std::string & filename) :
         InstGenerator(info_logger, mavis_facade),
-        edm_(edm::EDMBackendFactory::create(filename, 1000, {{}}, "pegasus-cosim.db", 1000))
+        edm_(edm::EDMBackendFactory::create(filename, 2000, {}, "pegasus-cosim.db", 1000))
     {
+        // TODO: hardcoded things for pegasus backend - fix it(Ma-gi-cian)
     }
 
     InstPtr EDMInstGenerator::getNextInst(const sparta::Clock* clk)
     {
         if (SPARTA_EXPECT_FALSE(isDone()))
+        {
             return nullptr;
+        }
 
         const edm::Addr next_pc = edm_->peekNextPc(0, 0);
         const edm::SteeringDecision decision = evaluateRules_(next_pc);
@@ -342,14 +345,19 @@ namespace olympia
         }
 
         if (info.ends_simulation)
-            return nullptr;
-
-        // Save a checkpoint for every branch so reset() can
-        // find the right EDMCheckpoint to flush back to
-        if (info.is_branch)
         {
-            saveCheckpoint_(info, decision);
+            return nullptr;
         }
+
+        // checkpoint on all the instructions cause ROB flushes on:
+        // 1. branchs and
+        // 2. CSR register writes - ( could be more need to look
+        // but checkpoint on all )
+        // for coremark.baremetal : instructiojn 33 will cause a crash
+        // because it is not a branch instruction but a csr write
+        saveCheckpoint_(info, decision);
+
+        // Look into detecting csr writes and checkpoint those too
 
         InstPtr inst = mavis_facade_->makeInst(info.opcode, clk);
         try
@@ -358,8 +366,6 @@ namespace olympia
             inst->setUniqueID(++unique_id_);
             inst->setProgramID(program_id_++);
 
-            // iss_uid is the only identifier that crosses the
-            // agnostic boundary — backend interprets it internally
             inst->setRewindIterator<uint64_t>(info.iss_uid);
 
             inst->setCoF(info.is_branch);
@@ -371,9 +377,13 @@ namespace olympia
             if (info.is_load || info.is_store)
             {
                 if (!info.mem_reads.empty())
+                {
                     inst->setTargetVAddr(info.mem_reads.front().vaddr);
+                }
                 else if (!info.mem_writes.empty())
+                {
                     inst->setTargetVAddr(info.mem_writes.front().vaddr);
+                }
             }
             return inst;
         }
@@ -392,7 +402,7 @@ namespace olympia
     {
         const uint64_t saved_iss_uid = inst_ptr->getRewindIterator<uint64_t>();
 
-        // Find the checkpoint matching this instruction
+        // find the checkpoint matching this instruction
         auto it = std::find_if(checkpoint_queue_.begin(), checkpoint_queue_.end(),
                                [saved_iss_uid](const edm::EDMCheckpoint & cp)
                                { return cp.iss_uid == saved_iss_uid; });
@@ -408,11 +418,9 @@ namespace olympia
              << program_id_ << " uid:" << inst_ptr->getUniqueID() << " iss_uid:" << saved_iss_uid
              << (skip ? " (skipping to next)" : " (inclusive)"));
 
-        // Pass the full checkpoint — backend adapter does its own
-        // lookup (EventAccessor for Pegasus, tag for Whisper)
         edm_->flush(0, 0, *it);
 
-        // Prune this checkpoint and everything younger
+        // remove this checkpoint and everything younger
         checkpoint_queue_.erase(it, checkpoint_queue_.end());
 
         if (skip)
@@ -436,22 +444,16 @@ namespace olympia
 
     edm::SteeringDecision EDMInstGenerator::evaluateRules_(const edm::Addr /*next_pc*/)
     {
-        // Stub — steering rule engine goes here later (yaml config).
-        // For now always step normally.
+        // TODO:  implement this full - add the yaml configuration
+        // for now always step normally.
         return edm::SteeringDecision{edm::SteeringDecision::Action::STEP_NORMAL, 0};
     }
-
-    // ---------------------------------------------------------------
-    // Port handlers — called by Fetch, fully agnostic to backend type
-    // ---------------------------------------------------------------
 
     void EDMInstGenerator::onRetire_(const InstPtr & inst)
     {
         const uint64_t iss_uid = inst->getRewindIterator<uint64_t>();
         edm_->commitInstruction(0, 0, iss_uid);
 
-        // Prune the matching checkpoint from the front of the queue
-        // now that this instruction has safely retired
         if (!checkpoint_queue_.empty() && checkpoint_queue_.front().iss_uid == iss_uid)
         {
             checkpoint_queue_.pop_front();
@@ -460,10 +462,6 @@ namespace olympia
 
     void EDMInstGenerator::onFlush_(const InstPtr & inst)
     {
-        // ROB calls this per squashed instruction youngest→oldest.
-        // We do NOT call edm_->flush() here — reset() owns that
-        // with the full checkpoint context. Here we only clean up
-        // the checkpoint queue entry for this instruction if one exists.
         const uint64_t iss_uid = inst->getRewindIterator<uint64_t>();
         checkpoint_queue_.erase(std::remove_if(checkpoint_queue_.begin(), checkpoint_queue_.end(),
                                                [iss_uid](const edm::EDMCheckpoint & cp)

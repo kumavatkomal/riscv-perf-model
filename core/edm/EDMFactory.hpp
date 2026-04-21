@@ -3,6 +3,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <iostream>
 
 namespace olympia::edm
 {
@@ -45,10 +46,11 @@ namespace olympia::edm
     {
         BackendRegistrar(const std::string & name)
         {
+
+            std::cout << "registering the backend :" << name << std::endl;
             EDMBackendFactory::registerBackend(
                 name,
-                [](const std::string & w,
-                   uint64_t il, const std::map<std::string, std::string> & p,
+                [](const std::string & w, uint64_t il, const std::map<std::string, std::string> & p,
                    const std::string & db, size_t snap)
                 { return std::make_unique<Implementation>(w, il, p, db, snap); });
         }

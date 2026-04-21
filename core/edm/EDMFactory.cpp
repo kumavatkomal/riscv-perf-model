@@ -3,22 +3,25 @@
 
 namespace olympia::edm
 {
-    std::map<std::string, EDMBackendFactory::BackendCreator>&
-    EDMBackendFactory::getRegistry()
+	// forward declaring the force link functions
+	void forcePegasusLink();
+    std::map<std::string, EDMBackendFactory::BackendCreator> & EDMBackendFactory::getRegistry()
     {
+	    static bool once = (forcePegasusLink(), true);
+	    (void)once;
         static std::map<std::string, BackendCreator> registry;
         return registry;
     }
 
-    std::string& EDMBackendFactory::getDefault()
+    std::string & EDMBackendFactory::getDefault()
     {
         static std::string default_backend;
         return default_backend;
     }
 
-    void EDMBackendFactory::registerBackend(const std::string& name, BackendCreator creator)
+    void EDMBackendFactory::registerBackend(const std::string & name, BackendCreator creator)
     {
-        auto& reg = getRegistry();
+        auto & reg = getRegistry();
         if (reg.empty())
         {
             getDefault() = name;
@@ -26,25 +29,20 @@ namespace olympia::edm
         reg.emplace(name, std::move(creator));
     }
 
-    std::unique_ptr<EDMInterface> EDMBackendFactory::create(
-        const std::string& workload,
-        uint64_t ilimit,
-        const std::map<std::string, std::string>& params,
-        const std::string& db_file,
-        size_t snapshot_threshold)
+    std::unique_ptr<EDMInterface>
+    EDMBackendFactory::create(const std::string & workload, uint64_t ilimit,
+                              const std::map<std::string, std::string> & params,
+                              const std::string & db_file, size_t snapshot_threshold)
     {
-        auto& reg = getRegistry();
-        const std::string& name = getDefault();
+        auto & reg = getRegistry();
+        // const std::string & name = getDefault();
 
-        auto it = reg.find(name);
+        auto it = reg.find("pegasus");
         sparta_assert(it != reg.end(),
-            "EDMBackendFactory: no backend registered under '" << name << "'");
+                      "EDMBackendFactory: no backend registered under '" << "pegasus" << "'");
 
         return it->second(workload, ilimit, params, db_file, snapshot_threshold);
     }
 
-    std::string EDMBackendFactory::getDefaultBackend()
-    {
-        return getDefault();
-    }
-}
+    std::string EDMBackendFactory::getDefaultBackend() { return getDefault(); }
+} // namespace olympia::edm

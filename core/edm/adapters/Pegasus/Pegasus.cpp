@@ -1,22 +1,46 @@
 #include "Pegasus.hpp"
 #include "EDMTypes.hpp"
 #include <cstdint>
+#include <iostream>
 #include <map>
 #include <memory>
 #include "pegasus/cosim/PegasusCoSim.hpp"
 #include "pegasus/cosim/EventAccessor.hpp"
 #include "edm/EDMFactory.hpp"
+#include <sparta/utils/SpartaAssert.hpp>
+#include <sparta/kernel/SleeperThread.hpp>
 
 namespace olympia::edm
 {
     PegasusAdapter::PegasusAdapter(const std::string & workload, uint64_t ilimit,
                                    const std::map<std::string, std::string> & params,
-                                   const std::string & db_file, size_t snapshot_threshold) :
-        cosim_(std::make_unique<pegasus::cosim::PegasusCoSim>(
+                                   const std::string & db_file, size_t snapshot_threshold)
+
+    {
+	    std::cout << "The ilimit was : " << ilimit << std::endl;
+        cosim_ = std::make_unique<pegasus::cosim::PegasusCoSim>(
             ilimit, workload, params,
             std::vector<std::vector<std::string>>{}, // empty pegasus_loggers
-            db_file, snapshot_threshold))
+            db_file, snapshot_threshold);
+    }
+
+    PegasusAdapter::~PegasusAdapter()
     {
+        try
+        {
+            if (!pending_events_.empty())
+            {
+                auto & oldest_event = pending_events_.begin()->second;
+                cosim_->flush(oldest_event, false);
+                pending_events_.clear();
+            }
+            cosim_->finish();
+        }
+        catch (...)
+        {
+            std::cout << "Do not know how but there are " << pending_events_.size()
+                      << " events still uncommitted" << std::endl;
+        }
     }
 
     bool PegasusAdapter::isFinished(CoreId core_id, HartId hart_id) const
@@ -50,23 +74,24 @@ namespace olympia::edm
         return info;
     }
 
-    void PegasusAdapter::commitInstruction(CoreId /*core_id*/ , HartId /*hart_id*/, uint64_t iss_uid)
+    void PegasusAdapter::commitInstruction(CoreId /*core_id*/, HartId /*hart_id*/, uint64_t iss_uid)
     {
         auto it = pending_events_.find(iss_uid);
         if (it != pending_events_.end())
         {
             cosim_->commit(it->second);
             pending_events_.erase(it);
-        } 
+        }
     }
 
     void PegasusAdapter::commitStoreWrite(CoreId /*core_id*/, HartId /*hart_id*/, uint64_t iss_uid)
     {
-       auto it = pending_events_.find(iss_uid);
-       sparta_assert(it != pending_events_.end(), "commitStoreWrite for iss_uid " << iss_uid << " not found in pending_events");
-       cosim_->commitStoreWrite(it->second);
-       cosim_->commit(it->second);
-       pending_events_.erase(it);
+        auto it = pending_events_.find(iss_uid);
+        sparta_assert(it != pending_events_.end(),
+                      "commitStoreWrite for iss_uid " << iss_uid << " not found in pending_events");
+        cosim_->commitStoreWrite(it->second);
+        cosim_->commit(it->second);
+        pending_events_.erase(it);
     }
 
     void PegasusAdapter::dropStoreWrite(CoreId /*core_id*/, HartId /*hart_id*/, uint64_t iss_uid)
@@ -88,17 +113,20 @@ namespace olympia::edm
             return;
         }
 
-        if(checkpoint.iss_uid != std::numeric_limits<uint64_t>::max())
+        if (checkpoint.iss_uid != std::numeric_limits<uint64_t>::max())
         {
             auto it = pending_events_.find(checkpoint.iss_uid);
-            sparta_assert(it != pending_events_.end(), "flush : iss_uid " << checkpoint.iss_uid << "not found in pending_events");
+            sparta_assert(it != pending_events_.end(), "flush : iss_uid "
+                                                           << checkpoint.iss_uid
+                                                           << "not found in pending_events");
             cosim_->flush(it->second, false);
             pending_events_.erase(it, pending_events_.end());
-        } 
-        else{
+        }
+        else
+        {
             auto & oldest = pending_events_.begin()->second;
             cosim_->flush(oldest, false);
-            pending_events_.clear(); 
+            pending_events_.clear();
         }
     }
 
@@ -178,5 +206,7 @@ namespace olympia::edm
 
     static olympia::edm::BackendRegistrar<olympia::edm::PegasusAdapter>
         s_pegasus_registrar("pegasus");
+
+    void forcePegasusLink() {};
 
 } // namespace olympia::edm
