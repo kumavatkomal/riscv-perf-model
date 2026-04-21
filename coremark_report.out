@@ -1,0 +1,557 @@
+Name:     Olympia RISC-V Perf Model 
+Cmdline:  ./olympia --workload coremark.elf -i 3000 --report-all coremark_report.out
+Exe:      ./olympia
+SimulatorVersion: v0.1.0
+Repro:    Git SHA: 8caf01a-dirty
+Start:    Tuesday Tue Apr 21 13:31:59 2026
+Elapsed:  6.033670
+
+
+Report "@ on _SPARTA_global_node_" [0,29783]
+  Report "scheduler"
+      ticks = 29782
+      picoseconds = 29782
+      seconds = 2.9782e-08
+      milliseconds = 2.9782e-05
+      microseconds = 0.029782
+      nanoseconds = 29.782
+      host_machine_user_runtime_seconds = 6.96
+      host_machine_system_runtime_seconds = 0.14
+      host_machine_wall_runtime_seconds = 7.35
+      events_fired = 443299
+      host_user_time_count_ms = 6960
+      host_system_time_count_ms = 140
+      host_wall_time_count_ms = 7350
+
+  Report "top"
+    Report "top.cpu"
+      Report "top.cpu.core0"
+        Report "top.cpu.core0.icache"
+            IL1_cache_hits = 20766
+            IL1_cache_misses = 12
+
+        Report "top.cpu.core0.decode"
+            FetchQueue_utilization_UF = 0
+            FetchQueue_utilization_UF_probability = 0
+            FetchQueue_utilization_count0 = 29782
+            FetchQueue_utilization_count0_probability = 1
+            FetchQueue_utilization_count1 = 0
+            FetchQueue_utilization_count1_probability = 0
+            FetchQueue_utilization_count2 = 0
+            FetchQueue_utilization_count2_probability = 0
+            FetchQueue_utilization_count3 = 0
+            FetchQueue_utilization_count3_probability = 0
+            FetchQueue_utilization_count4 = 0
+            FetchQueue_utilization_count4_probability = 0
+            FetchQueue_utilization_count5 = 0
+            FetchQueue_utilization_count5_probability = 0
+            FetchQueue_utilization_count6 = 0
+            FetchQueue_utilization_count6_probability = 0
+            FetchQueue_utilization_count7 = 0
+            FetchQueue_utilization_count7_probability = 0
+            FetchQueue_utilization_count8 = 0
+            FetchQueue_utilization_count8_probability = 0
+            FetchQueue_utilization_count9 = 0
+            FetchQueue_utilization_count9_probability = 0
+            FetchQueue_utilization_count10 = 0
+            FetchQueue_utilization_count10_probability = 0
+            FetchQueue_utilization_OF = 0
+            FetchQueue_utilization_OF_probability = 0
+            FetchQueue_utilization_total = 29782
+            FetchQueue_utilization_max = 2
+            FetchQueue_utilization_weighted_avg = 0
+            FetchQueue_utilization_weighted_nonzero_avg = nan
+            FetchQueue_utilization_full = 0
+            FetchQueue_utilization_full_probability = 0
+            fusion_num_fuse_instructions = 0
+            fusion_num_ghost_instructions = 0
+            fusion_num_groups_defined = 0
+            fusion_num_groups_utilized = 0
+            fusion_pred_cycles_saved = 0
+            vset_blocking_count = 0
+            vset_blocking_stall_latency = 0
+
+          Report "top.cpu.core0.decode.vec_uop_gen"
+              vector_uops_generated = 0
+
+
+        Report "top.cpu.core0.rename"
+            rename_histogram_0 = 0
+            rename_histogram_1 = 14
+            rename_histogram_2 = 14849
+            move_eliminations = 0
+            stall_no_decode_insts = 29767
+            stall_no_dispatch_credits = 15
+            stall_no_integer_renames = 0
+            stall_no_float_renames = 0
+            stall_no_vector_renames = 0
+            stall_not_stalled = 0
+            rename_uop_queue_utilization_UF = 0
+            rename_uop_queue_utilization_UF_probability = 0
+            rename_uop_queue_utilization_count0 = 29769
+            rename_uop_queue_utilization_count0_probability = 0.999563
+            rename_uop_queue_utilization_count1 = 2
+            rename_uop_queue_utilization_count1_probability = 6.71547e-05
+            rename_uop_queue_utilization_count2 = 2
+            rename_uop_queue_utilization_count2_probability = 6.71547e-05
+            rename_uop_queue_utilization_count3 = 2
+            rename_uop_queue_utilization_count3_probability = 6.71547e-05
+            rename_uop_queue_utilization_count4 = 2
+            rename_uop_queue_utilization_count4_probability = 6.71547e-05
+            rename_uop_queue_utilization_count5 = 2
+            rename_uop_queue_utilization_count5_probability = 6.71547e-05
+            rename_uop_queue_utilization_count6 = 2
+            rename_uop_queue_utilization_count6_probability = 6.71547e-05
+            rename_uop_queue_utilization_count7 = 1
+            rename_uop_queue_utilization_count7_probability = 3.35773e-05
+            rename_uop_queue_utilization_count8 = 0
+            rename_uop_queue_utilization_count8_probability = 0
+            rename_uop_queue_utilization_count9 = 0
+            rename_uop_queue_utilization_count9_probability = 0
+            rename_uop_queue_utilization_count10 = 0
+            rename_uop_queue_utilization_count10_probability = 0
+            rename_uop_queue_utilization_OF = 0
+            rename_uop_queue_utilization_OF_probability = 0
+            rename_uop_queue_utilization_total = 29782
+            rename_uop_queue_utilization_max = 8
+            rename_uop_queue_utilization_weighted_avg = 0.00164529
+            rename_uop_queue_utilization_weighted_nonzero_avg = 3.76923
+            rename_uop_queue_utilization_full = 0
+            rename_uop_queue_utilization_full_probability = 0
+
+        Report "top.cpu.core0.dispatch"
+            dispatch_queue_utilization_UF = 0
+            dispatch_queue_utilization_UF_probability = 0
+            dispatch_queue_utilization_count0 = 17880
+            dispatch_queue_utilization_count0_probability = 0.600363
+            dispatch_queue_utilization_count1 = 2970
+            dispatch_queue_utilization_count1_probability = 0.0997247
+            dispatch_queue_utilization_count2 = 5938
+            dispatch_queue_utilization_count2_probability = 0.199382
+            dispatch_queue_utilization_count3 = 2969
+            dispatch_queue_utilization_count3_probability = 0.0996911
+            dispatch_queue_utilization_count4 = 2
+            dispatch_queue_utilization_count4_probability = 6.71547e-05
+            dispatch_queue_utilization_count5 = 2
+            dispatch_queue_utilization_count5_probability = 6.71547e-05
+            dispatch_queue_utilization_count6 = 2
+            dispatch_queue_utilization_count6_probability = 6.71547e-05
+            dispatch_queue_utilization_count7 = 2
+            dispatch_queue_utilization_count7_probability = 6.71547e-05
+            dispatch_queue_utilization_count8 = 2
+            dispatch_queue_utilization_count8_probability = 6.71547e-05
+            dispatch_queue_utilization_count9 = 15
+            dispatch_queue_utilization_count9_probability = 0.00050366
+            dispatch_queue_utilization_count10 = 0
+            dispatch_queue_utilization_count10_probability = 0
+            dispatch_queue_utilization_OF = 0
+            dispatch_queue_utilization_OF_probability = 0
+            dispatch_queue_utilization_total = 29782
+            dispatch_queue_utilization_max = 10
+            dispatch_queue_utilization_weighted_avg = 0.80411
+            dispatch_queue_utilization_weighted_nonzero_avg = 2.0121
+            dispatch_queue_utilization_full = 0
+            dispatch_queue_utilization_full_probability = 0
+            stall_br_busy = 0
+            stall_cmov_busy = 0
+            stall_div_busy = 0
+            stall_faddsub_busy = 0
+            stall_float_busy = 0
+            stall_fmac_busy = 0
+            stall_i2f_busy = 0
+            stall_f2i_busy = 0
+            stall_int_busy = 26754
+            stall_lsu_busy = 0
+            stall_mul_busy = 0
+            stall_vint_busy = 0
+            stall_vdiv_busy = 0
+            stall_vmul_busy = 0
+            stall_vfixed_busy = 0
+            stall_vmask_busy = 0
+            stall_vmv_busy = 0
+            stall_v2s_busy = 0
+            stall_vfloat_busy = 0
+            stall_vfdiv_busy = 0
+            stall_vfmul_busy = 0
+            stall_vpermute_busy = 0
+            stall_vload_busy = 0
+            stall_vstore_busy = 0
+            stall_vset_busy = 0
+            stall_rob_full = 0
+            sys_busy = 0
+            stall_not_stalled = 3028
+            count_br_insts = 2968
+            count_cmov_insts = 0
+            count_div_insts = 0
+            count_faddsub_insts = 0
+            count_float_insts = 0
+            count_fmac_insts = 0
+            count_i2f_insts = 0
+            count_f2i_insts = 0
+            count_int_insts = 8936
+            count_lsu_insts = 0
+            count_mul_insts = 0
+            count_vint_insts = 0
+            count_vdiv_insts = 0
+            count_vmul_insts = 0
+            count_vfixed_insts = 0
+            count_vmask_insts = 0
+            count_vmv_insts = 0
+            count_v2s_insts = 0
+            count_vfloat_insts = 0
+            count_vfdiv_insts = 0
+            count_vfmul_insts = 0
+            count_vpermute_insts = 0
+            count_vload_insts = 0
+            count_vstore_insts = 0
+            count_vset_insts = 0
+            count_rob_insts = 0
+            count_sys_insts = 2968
+            count_insts_per_unit = 14872
+            count_insts_per_unit.dispatch_inst_count0 = 2968
+            count_insts_per_unit.dispatch_inst_count1 = 0
+            count_insts_per_unit.dispatch_inst_count2 = 0
+            count_insts_per_unit.dispatch_inst_count3 = 0
+            count_insts_per_unit.dispatch_inst_count4 = 0
+            count_insts_per_unit.dispatch_inst_count5 = 0
+            count_insts_per_unit.dispatch_inst_count6 = 0
+            count_insts_per_unit.dispatch_inst_count7 = 0
+            count_insts_per_unit.dispatch_inst_count8 = 8936
+            count_insts_per_unit.dispatch_inst_count9 = 0
+            count_insts_per_unit.dispatch_inst_count10 = 0
+            count_insts_per_unit.dispatch_inst_count11 = 0
+            count_insts_per_unit.dispatch_inst_count12 = 0
+            count_insts_per_unit.dispatch_inst_count13 = 0
+            count_insts_per_unit.dispatch_inst_count14 = 0
+            count_insts_per_unit.dispatch_inst_count15 = 0
+            count_insts_per_unit.dispatch_inst_count16 = 0
+            count_insts_per_unit.dispatch_inst_count17 = 0
+            count_insts_per_unit.dispatch_inst_count18 = 0
+            count_insts_per_unit.dispatch_inst_count19 = 0
+            count_insts_per_unit.dispatch_inst_count20 = 0
+            count_insts_per_unit.dispatch_inst_count21 = 0
+            count_insts_per_unit.dispatch_inst_count22 = 0
+            count_insts_per_unit.dispatch_inst_count23 = 0
+            count_insts_per_unit.dispatch_inst_count24 = 0
+            count_insts_per_unit.dispatch_inst_count25 = 0
+            count_insts_per_unit.dispatch_inst_count26 = 2968
+            weighted_count_insts_per_unit = 14872
+            weighted_count_insts_per_unit.Testing0 = 2968
+            weighted_count_insts_per_unit.Testing1 = 0
+            weighted_count_insts_per_unit.Testing2 = 0
+            weighted_count_insts_per_unit.Testing3 = 0
+            weighted_count_insts_per_unit.Testing4 = 0
+            weighted_count_insts_per_unit.Testing5 = 0
+            weighted_count_insts_per_unit.Testing6 = 0
+            weighted_count_insts_per_unit.Testing7 = 0
+            weighted_count_insts_per_unit.Testing8 = 8936
+            weighted_count_insts_per_unit.Testing9 = 0
+            weighted_count_insts_per_unit.Testing10 = 0
+            weighted_count_insts_per_unit.Testing11 = 0
+            weighted_count_insts_per_unit.Testing12 = 0
+            weighted_count_insts_per_unit.Testing13 = 0
+            weighted_count_insts_per_unit.Testing14 = 0
+            weighted_count_insts_per_unit.Testing15 = 0
+            weighted_count_insts_per_unit.Testing16 = 0
+            weighted_count_insts_per_unit.Testing17 = 0
+            weighted_count_insts_per_unit.Testing18 = 0
+            weighted_count_insts_per_unit.Testing19 = 0
+            weighted_count_insts_per_unit.Testing20 = 0
+            weighted_count_insts_per_unit.Testing21 = 0
+            weighted_count_insts_per_unit.Testing22 = 0
+            weighted_count_insts_per_unit.Testing23 = 0
+            weighted_count_insts_per_unit.Testing24 = 0
+            weighted_count_insts_per_unit.Testing25 = 0
+            weighted_count_insts_per_unit.Testing26 = 2968
+            context_count_int_insts = 0
+            context_count_int_insts.dispatch_int_inst_count0 = 0
+            count_total_insts_dispatched = 11904
+
+        Report "top.cpu.core0.execute"
+          Report "top.cpu.core0.execute.iq0"
+              total_insts_issued = 5968
+
+          Report "top.cpu.core0.execute.iq1"
+              total_insts_issued = 0
+
+          Report "top.cpu.core0.execute.iq2"
+              total_insts_issued = 0
+
+          Report "top.cpu.core0.execute.iq3"
+              total_insts_issued = 0
+
+          Report "top.cpu.core0.execute.alu0_pipe"
+              total_insts_executed = 5968
+
+          Report "top.cpu.core0.execute.fpu0_pipe"
+              total_insts_executed = 0
+
+          Report "top.cpu.core0.execute.br_pipe"
+              total_insts_executed = 0
+
+          Report "top.cpu.core0.execute.vint_pipe"
+              total_insts_executed = 0
+
+
+        Report "top.cpu.core0.dcache"
+            dl1_cache_hits = 0
+            dl1_cache_misses = 0
+            dl1_hit_miss_ratio = nan
+
+        Report "top.cpu.core0.mmu"
+            tlb_hits = 0
+            tlb_misses = 0
+
+          Report "top.cpu.core0.mmu.tlb"
+              tlb_hits = 0
+
+
+        Report "top.cpu.core0.lsu"
+            lsu_insts_dispatched = 0
+            stores_retired = 0
+            lsu_insts_issued = 0
+            replay_insts_ = 0
+            lsu_insts_completed = 0
+            lsu_flushes = 2967
+            biu_reqs = 0
+
+        Report "top.cpu.core0.l2cache"
+            num_reqs_from_dcache = 0
+            num_reqs_from_icache = 3
+            num_reqs_to_biu = 3
+            num_acks_from_biu = 0
+            num_acks_to_icache = 3
+            num_acks_to_dcache = 0
+            num_resps_from_biu = 3
+            num_resps_to_icache = 3
+            num_resps_to_dcache = 0
+            l2_cache_hits = 0
+            l2_cache_misses = 6
+            Miss_Pending_Buffer_utilization_UF = 0
+            Miss_Pending_Buffer_utilization_UF_probability = 0
+            Miss_Pending_Buffer_utilization_count0 = 29749
+            Miss_Pending_Buffer_utilization_count0_probability = 0.998892
+            Miss_Pending_Buffer_utilization_count1 = 33
+            Miss_Pending_Buffer_utilization_count1_probability = 0.00110805
+            Miss_Pending_Buffer_utilization_count2 = 0
+            Miss_Pending_Buffer_utilization_count2_probability = 0
+            Miss_Pending_Buffer_utilization_count3 = 0
+            Miss_Pending_Buffer_utilization_count3_probability = 0
+            Miss_Pending_Buffer_utilization_count4 = 0
+            Miss_Pending_Buffer_utilization_count4_probability = 0
+            Miss_Pending_Buffer_utilization_count5 = 0
+            Miss_Pending_Buffer_utilization_count5_probability = 0
+            Miss_Pending_Buffer_utilization_count6 = 0
+            Miss_Pending_Buffer_utilization_count6_probability = 0
+            Miss_Pending_Buffer_utilization_count7 = 0
+            Miss_Pending_Buffer_utilization_count7_probability = 0
+            Miss_Pending_Buffer_utilization_count8 = 0
+            Miss_Pending_Buffer_utilization_count8_probability = 0
+            Miss_Pending_Buffer_utilization_count9 = 0
+            Miss_Pending_Buffer_utilization_count9_probability = 0
+            Miss_Pending_Buffer_utilization_count10 = 0
+            Miss_Pending_Buffer_utilization_count10_probability = 0
+            Miss_Pending_Buffer_utilization_count11 = 0
+            Miss_Pending_Buffer_utilization_count11_probability = 0
+            Miss_Pending_Buffer_utilization_count12 = 0
+            Miss_Pending_Buffer_utilization_count12_probability = 0
+            Miss_Pending_Buffer_utilization_count13 = 0
+            Miss_Pending_Buffer_utilization_count13_probability = 0
+            Miss_Pending_Buffer_utilization_count14 = 0
+            Miss_Pending_Buffer_utilization_count14_probability = 0
+            Miss_Pending_Buffer_utilization_count15 = 0
+            Miss_Pending_Buffer_utilization_count15_probability = 0
+            Miss_Pending_Buffer_utilization_count16 = 0
+            Miss_Pending_Buffer_utilization_count16_probability = 0
+            Miss_Pending_Buffer_utilization_count17 = 0
+            Miss_Pending_Buffer_utilization_count17_probability = 0
+            Miss_Pending_Buffer_utilization_count18 = 0
+            Miss_Pending_Buffer_utilization_count18_probability = 0
+            Miss_Pending_Buffer_utilization_count19 = 0
+            Miss_Pending_Buffer_utilization_count19_probability = 0
+            Miss_Pending_Buffer_utilization_count20 = 0
+            Miss_Pending_Buffer_utilization_count20_probability = 0
+            Miss_Pending_Buffer_utilization_count21 = 0
+            Miss_Pending_Buffer_utilization_count21_probability = 0
+            Miss_Pending_Buffer_utilization_count22 = 0
+            Miss_Pending_Buffer_utilization_count22_probability = 0
+            Miss_Pending_Buffer_utilization_count23 = 0
+            Miss_Pending_Buffer_utilization_count23_probability = 0
+            Miss_Pending_Buffer_utilization_count24 = 0
+            Miss_Pending_Buffer_utilization_count24_probability = 0
+            Miss_Pending_Buffer_utilization_count25 = 0
+            Miss_Pending_Buffer_utilization_count25_probability = 0
+            Miss_Pending_Buffer_utilization_count26 = 0
+            Miss_Pending_Buffer_utilization_count26_probability = 0
+            Miss_Pending_Buffer_utilization_count27 = 0
+            Miss_Pending_Buffer_utilization_count27_probability = 0
+            Miss_Pending_Buffer_utilization_count28 = 0
+            Miss_Pending_Buffer_utilization_count28_probability = 0
+            Miss_Pending_Buffer_utilization_count29 = 0
+            Miss_Pending_Buffer_utilization_count29_probability = 0
+            Miss_Pending_Buffer_utilization_count30 = 0
+            Miss_Pending_Buffer_utilization_count30_probability = 0
+            Miss_Pending_Buffer_utilization_count31 = 0
+            Miss_Pending_Buffer_utilization_count31_probability = 0
+            Miss_Pending_Buffer_utilization_count32 = 0
+            Miss_Pending_Buffer_utilization_count32_probability = 0
+            Miss_Pending_Buffer_utilization_count33 = 0
+            Miss_Pending_Buffer_utilization_count33_probability = 0
+            Miss_Pending_Buffer_utilization_count34 = 0
+            Miss_Pending_Buffer_utilization_count34_probability = 0
+            Miss_Pending_Buffer_utilization_count35 = 0
+            Miss_Pending_Buffer_utilization_count35_probability = 0
+            Miss_Pending_Buffer_utilization_count36 = 0
+            Miss_Pending_Buffer_utilization_count36_probability = 0
+            Miss_Pending_Buffer_utilization_count37 = 0
+            Miss_Pending_Buffer_utilization_count37_probability = 0
+            Miss_Pending_Buffer_utilization_count38 = 0
+            Miss_Pending_Buffer_utilization_count38_probability = 0
+            Miss_Pending_Buffer_utilization_count39 = 0
+            Miss_Pending_Buffer_utilization_count39_probability = 0
+            Miss_Pending_Buffer_utilization_count40 = 0
+            Miss_Pending_Buffer_utilization_count40_probability = 0
+            Miss_Pending_Buffer_utilization_count41 = 0
+            Miss_Pending_Buffer_utilization_count41_probability = 0
+            Miss_Pending_Buffer_utilization_count42 = 0
+            Miss_Pending_Buffer_utilization_count42_probability = 0
+            Miss_Pending_Buffer_utilization_count43 = 0
+            Miss_Pending_Buffer_utilization_count43_probability = 0
+            Miss_Pending_Buffer_utilization_count44 = 0
+            Miss_Pending_Buffer_utilization_count44_probability = 0
+            Miss_Pending_Buffer_utilization_count45 = 0
+            Miss_Pending_Buffer_utilization_count45_probability = 0
+            Miss_Pending_Buffer_utilization_count46 = 0
+            Miss_Pending_Buffer_utilization_count46_probability = 0
+            Miss_Pending_Buffer_utilization_count47 = 0
+            Miss_Pending_Buffer_utilization_count47_probability = 0
+            Miss_Pending_Buffer_utilization_count48 = 0
+            Miss_Pending_Buffer_utilization_count48_probability = 0
+            Miss_Pending_Buffer_utilization_count49 = 0
+            Miss_Pending_Buffer_utilization_count49_probability = 0
+            Miss_Pending_Buffer_utilization_count50 = 0
+            Miss_Pending_Buffer_utilization_count50_probability = 0
+            Miss_Pending_Buffer_utilization_count51 = 0
+            Miss_Pending_Buffer_utilization_count51_probability = 0
+            Miss_Pending_Buffer_utilization_count52 = 0
+            Miss_Pending_Buffer_utilization_count52_probability = 0
+            Miss_Pending_Buffer_utilization_count53 = 0
+            Miss_Pending_Buffer_utilization_count53_probability = 0
+            Miss_Pending_Buffer_utilization_count54 = 0
+            Miss_Pending_Buffer_utilization_count54_probability = 0
+            Miss_Pending_Buffer_utilization_count55 = 0
+            Miss_Pending_Buffer_utilization_count55_probability = 0
+            Miss_Pending_Buffer_utilization_count56 = 0
+            Miss_Pending_Buffer_utilization_count56_probability = 0
+            Miss_Pending_Buffer_utilization_count57 = 0
+            Miss_Pending_Buffer_utilization_count57_probability = 0
+            Miss_Pending_Buffer_utilization_count58 = 0
+            Miss_Pending_Buffer_utilization_count58_probability = 0
+            Miss_Pending_Buffer_utilization_count59 = 0
+            Miss_Pending_Buffer_utilization_count59_probability = 0
+            Miss_Pending_Buffer_utilization_count60 = 0
+            Miss_Pending_Buffer_utilization_count60_probability = 0
+            Miss_Pending_Buffer_utilization_count61 = 0
+            Miss_Pending_Buffer_utilization_count61_probability = 0
+            Miss_Pending_Buffer_utilization_count62 = 0
+            Miss_Pending_Buffer_utilization_count62_probability = 0
+            Miss_Pending_Buffer_utilization_count63 = 0
+            Miss_Pending_Buffer_utilization_count63_probability = 0
+            Miss_Pending_Buffer_utilization_count64 = 0
+            Miss_Pending_Buffer_utilization_count64_probability = 0
+            Miss_Pending_Buffer_utilization_OF = 0
+            Miss_Pending_Buffer_utilization_OF_probability = 0
+            Miss_Pending_Buffer_utilization_total = 29782
+            Miss_Pending_Buffer_utilization_max = 1
+            Miss_Pending_Buffer_utilization_weighted_avg = 0.00110805
+            Miss_Pending_Buffer_utilization_weighted_nonzero_avg = 1
+            Miss_Pending_Buffer_utilization_full = 0
+            Miss_Pending_Buffer_utilization_full_probability = 0
+
+        Report "top.cpu.core0.rob"
+            ipc = 0.100729
+            total_number_retired = 3000
+            total_uops_retired = 3000
+            total_number_of_flushes = 2967
+            ReorderBuffer_utilization_UF = 0
+            ReorderBuffer_utilization_UF_probability = 0
+            ReorderBuffer_utilization_count0 = 20845
+            ReorderBuffer_utilization_count0_probability = 0.699919
+            ReorderBuffer_utilization_count1 = 2970
+            ReorderBuffer_utilization_count1_probability = 0.0997247
+            ReorderBuffer_utilization_count2 = 2971
+            ReorderBuffer_utilization_count2_probability = 0.0997582
+            ReorderBuffer_utilization_count3 = 2996
+            ReorderBuffer_utilization_count3_probability = 0.100598
+            ReorderBuffer_utilization_count4 = 0
+            ReorderBuffer_utilization_count4_probability = 0
+            ReorderBuffer_utilization_count5 = 0
+            ReorderBuffer_utilization_count5_probability = 0
+            ReorderBuffer_utilization_count6 = 0
+            ReorderBuffer_utilization_count6_probability = 0
+            ReorderBuffer_utilization_count7 = 0
+            ReorderBuffer_utilization_count7_probability = 0
+            ReorderBuffer_utilization_count8 = 0
+            ReorderBuffer_utilization_count8_probability = 0
+            ReorderBuffer_utilization_count9 = 0
+            ReorderBuffer_utilization_count9_probability = 0
+            ReorderBuffer_utilization_count10 = 0
+            ReorderBuffer_utilization_count10_probability = 0
+            ReorderBuffer_utilization_count11 = 0
+            ReorderBuffer_utilization_count11_probability = 0
+            ReorderBuffer_utilization_count12 = 0
+            ReorderBuffer_utilization_count12_probability = 0
+            ReorderBuffer_utilization_count13 = 0
+            ReorderBuffer_utilization_count13_probability = 0
+            ReorderBuffer_utilization_count14 = 0
+            ReorderBuffer_utilization_count14_probability = 0
+            ReorderBuffer_utilization_count15 = 0
+            ReorderBuffer_utilization_count15_probability = 0
+            ReorderBuffer_utilization_count16 = 0
+            ReorderBuffer_utilization_count16_probability = 0
+            ReorderBuffer_utilization_count17 = 0
+            ReorderBuffer_utilization_count17_probability = 0
+            ReorderBuffer_utilization_count18 = 0
+            ReorderBuffer_utilization_count18_probability = 0
+            ReorderBuffer_utilization_count19 = 0
+            ReorderBuffer_utilization_count19_probability = 0
+            ReorderBuffer_utilization_count20 = 0
+            ReorderBuffer_utilization_count20_probability = 0
+            ReorderBuffer_utilization_count21 = 0
+            ReorderBuffer_utilization_count21_probability = 0
+            ReorderBuffer_utilization_count22 = 0
+            ReorderBuffer_utilization_count22_probability = 0
+            ReorderBuffer_utilization_count23 = 0
+            ReorderBuffer_utilization_count23_probability = 0
+            ReorderBuffer_utilization_count24 = 0
+            ReorderBuffer_utilization_count24_probability = 0
+            ReorderBuffer_utilization_count25 = 0
+            ReorderBuffer_utilization_count25_probability = 0
+            ReorderBuffer_utilization_count26 = 0
+            ReorderBuffer_utilization_count26_probability = 0
+            ReorderBuffer_utilization_count27 = 0
+            ReorderBuffer_utilization_count27_probability = 0
+            ReorderBuffer_utilization_count28 = 0
+            ReorderBuffer_utilization_count28_probability = 0
+            ReorderBuffer_utilization_count29 = 0
+            ReorderBuffer_utilization_count29_probability = 0
+            ReorderBuffer_utilization_count30 = 0
+            ReorderBuffer_utilization_count30_probability = 0
+            ReorderBuffer_utilization_OF = 0
+            ReorderBuffer_utilization_OF_probability = 0
+            ReorderBuffer_utilization_total = 29782
+            ReorderBuffer_utilization_max = 4
+            ReorderBuffer_utilization_weighted_avg = 0.601034
+            ReorderBuffer_utilization_weighted_nonzero_avg = 2.00291
+            ReorderBuffer_utilization_full = 0
+            ReorderBuffer_utilization_full_probability = 0
+
+
+
+
+  Report "clocks"
+    Report "clocks.Root"
+        cycles = 29783
+
+
+
