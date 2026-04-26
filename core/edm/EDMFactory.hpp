@@ -3,27 +3,18 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <iostream>
 
 namespace olympia::edm
 {
     class EDMBackendFactory
     {
       public:
-        // declaring a function for creating the backend
-        // currently it is hardwired for the pegasus configuration
-        // need to handle giving these all things
-        // maybe have a config - for this backend where we automatically go and pick out the
-        // different parameters that different backends need.
         using BackendCreator = std::function<std::unique_ptr<EDMInterface>(
-            const std::string & workload, uint64_t ilimit,
-            const std::map<std::string, std::string> & params, const std::string & db_file,
-            size_t snapshot_threshold)>;
+            const std::string & config_file, const std::string & filename)>;
 
-        static std::unique_ptr<EDMInterface>
-        create(const std::string & workload, uint64_t ilimit = std::numeric_limits<uint64_t>::max(),
-               const std::map<std::string, std::string> & params = {},
-               const std::string & db_file = "", size_t snapsnot_threshold = 1000);
+        static std::unique_ptr<EDMInterface> create(const std::string & backend_name,
+                                                    const std::string & config_file,
+                                                    const std::string & filename);
 
         // Registering the backend
         static void registerBackend(const std::string & name, BackendCreator creator);
@@ -47,12 +38,9 @@ namespace olympia::edm
         BackendRegistrar(const std::string & name)
         {
 
-            std::cout << "registering the backend :" << name << std::endl;
             EDMBackendFactory::registerBackend(
-                name,
-                [](const std::string & w, uint64_t il, const std::map<std::string, std::string> & p,
-                   const std::string & db, size_t snap)
-                { return std::make_unique<Implementation>(w, il, p, db, snap); });
+                name, [](const std::string & config_file, const std::string & filename)
+                { return std::make_unique<Implementation>(config_file, filename); });
         }
     };
 } // namespace olympia::edm

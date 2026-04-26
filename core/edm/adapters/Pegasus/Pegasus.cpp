@@ -8,18 +8,29 @@
 #include "pegasus/cosim/EventAccessor.hpp"
 #include "edm/EDMFactory.hpp"
 #include <sparta/utils/SpartaAssert.hpp>
-#include <sparta/kernel/SleeperThread.hpp>
+#include <yaml-cpp/yaml.h>
 
 namespace olympia::edm
 {
-    PegasusAdapter::PegasusAdapter(const std::string & workload, uint64_t ilimit,
-                                   const std::map<std::string, std::string> & params,
-                                   const std::string & db_file, size_t snapshot_threshold)
+    PegasusAdapter::PegasusAdapter(const std::string & config_file, const std::string & filename)
 
     {
-	    std::cout << "The ilimit was : " << ilimit << std::endl;
+        if(config_file.empty())
+        {
+            throw;
+        }
+
+        YAML::Node config = YAML::LoadFile(config_file);
+        const uint64_t ilimit = config["ilimit"].as<uint64_t>();
+        const std::map<std::string, std::string> pegasus_params = config["params"].as<std::map<std::string, std::string>>();
+        const std::vector<std::vector<std::string>>  pegasus_loggers = config["pegasus_loggers"].as<std::vector<std::vector<std::string>>>();
+        const std::string db_file = config["db_file"].as<std::string>();
+        const uint64_t snapshot_threshold = config["snapshot_threashold"].as<uint64_t>();
+
+
+        // read the config file and handle it
         cosim_ = std::make_unique<pegasus::cosim::PegasusCoSim>(
-            ilimit, workload, params,
+            ilimit, filename, pegasus_params,
             std::vector<std::vector<std::string>>{}, // empty pegasus_loggers
             db_file, snapshot_threshold);
     }

@@ -78,9 +78,14 @@ namespace olympia
         auto cpu_node = getContainer()->getParent()->getParent();
         auto extension = sparta::notNull(cpu_node->getExtension("simulation_configuration"));
         auto workload = extension->getParameters()->getParameter("workload");
-        inst_generator_ =
-            InstGenerator::createGenerator(info_logger_, getMavis(getContainer()),
-                                           workload->getValueAsString(), skip_nonuser_mode_);
+
+        std::string edm_backend =
+            extension->getParameters()->getParameter("edm_backend")->getValueAsString();
+        std::string edm_config_file =
+            extension->getParameters()->getParameter("edm_config_file")->getValueAsString();
+        inst_generator_ = InstGenerator::createGenerator(
+            info_logger_, getMavis(getContainer()), workload->getValueAsString(),
+            skip_nonuser_mode_, edm_backend, edm_config_file);
 
         ev_fetch_insts->schedule(1);
     }

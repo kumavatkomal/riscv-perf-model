@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <sparta/simulation/Unit.hpp>
 #include <string>
 #include <memory>
 
@@ -37,6 +38,7 @@ namespace olympia
         InstGenerator(sparta::log::MessageSource & info_logger, MavisType* mavis_facade) :
             info_logger_(info_logger),
             mavis_facade_(mavis_facade)
+
         {
         }
 
@@ -45,7 +47,8 @@ namespace olympia
         virtual InstPtr getNextInst(const sparta::Clock* clk) = 0;
         static std::unique_ptr<InstGenerator>
         createGenerator(sparta::log::MessageSource & info_logger, MavisType* mavis_facade,
-                        const std::string & filename, const bool skip_nonuser_mode);
+                        const std::string & filename, const bool skip_nonuser_mode,
+                        const std::string & edm_name, const std::string & backend_config_file);
         virtual bool isDone() const = 0;
         virtual void reset(const InstPtr &, const bool) = 0;
 
@@ -102,7 +105,8 @@ namespace olympia
         // and the filename - that is the name of the binary
         // to be passed onto the backend
         EDMInstGenerator(sparta::log::MessageSource & info_logger, MavisType* mavis_facade,
-                         const std::string & filename);
+                         const std::string & filename, const std::string & edm_name,
+                         const std::string & backend_config_file);
 
         InstPtr getNextInst(const sparta::Clock* clk) override final;
 

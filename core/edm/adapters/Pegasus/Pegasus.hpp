@@ -17,9 +17,7 @@ namespace olympia::edm
     class PegasusAdapter : public EDMInterface
     {
       public:
-        PegasusAdapter(const std::string & workload, uint64_t ilimit,
-                       const std::map<std::string, std::string> & params,
-                       const std::string & db_file, size_t snapshot_threshold);
+        PegasusAdapter(const std::string & config_file, const std::string & filename);
 
         ~PegasusAdapter();
 

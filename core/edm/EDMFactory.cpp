@@ -3,12 +3,13 @@
 
 namespace olympia::edm
 {
-	// forward declaring the force link functions
-	void forcePegasusLink();
+    // forward declaring the force link functions
+    void forcePegasusLink();
+
     std::map<std::string, EDMBackendFactory::BackendCreator> & EDMBackendFactory::getRegistry()
     {
-	    static bool once = (forcePegasusLink(), true);
-	    (void)once;
+        static bool once = (forcePegasusLink(), true);
+        (void)once;
         static std::map<std::string, BackendCreator> registry;
         return registry;
     }
@@ -29,19 +30,16 @@ namespace olympia::edm
         reg.emplace(name, std::move(creator));
     }
 
-    std::unique_ptr<EDMInterface>
-    EDMBackendFactory::create(const std::string & workload, uint64_t ilimit,
-                              const std::map<std::string, std::string> & params,
-                              const std::string & db_file, size_t snapshot_threshold)
+    std::unique_ptr<EDMInterface> EDMBackendFactory::create(const std::string & backend_name,
+                                                            const std::string & config_file, const std::string & filename)
     {
         auto & reg = getRegistry();
-        // const std::string & name = getDefault();
-
-        auto it = reg.find("pegasus");
+        auto it = reg.find(backend_name);
         sparta_assert(it != reg.end(),
-                      "EDMBackendFactory: no backend registered under '" << "pegasus" << "'");
-
-        return it->second(workload, ilimit, params, db_file, snapshot_threshold);
+                      "No backend with the name "
+                          << backend_name
+                          << "found. Ensure the backend is registered and the edm mode is enabled");
+        return it->second(config_file, filename);
     }
 
     std::string EDMBackendFactory::getDefaultBackend() { return getDefault(); }

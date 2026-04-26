@@ -12,7 +12,8 @@ namespace olympia
     std::unique_ptr<InstGenerator>
     InstGenerator::createGenerator(sparta::log::MessageSource & info_logger,
                                    MavisType* mavis_facade, const std::string & filename,
-                                   const bool skip_nonuser_mode)
+                                   const bool skip_nonuser_mode, const std::string & edm_name,
+                                   const std::string & backend_config_file)
     {
         const std::string json_ext = "json";
         if ((filename.size() > json_ext.size())
@@ -37,8 +38,8 @@ namespace olympia
             && filename.substr(filename.size() - elf_ext.size()) == elf_ext)
         {
             std::cout << "olympia: ELF file input detected - running edm" << std::endl;
-            return std::unique_ptr<EDMInstGenerator>(
-                new EDMInstGenerator(info_logger, mavis_facade, filename));
+            return std::unique_ptr<EDMInstGenerator>(new EDMInstGenerator(
+                info_logger, mavis_facade, filename, edm_name, backend_config_file));
         }
 
         // Dunno what it is...
@@ -316,9 +317,11 @@ namespace olympia
     }
 
     EDMInstGenerator::EDMInstGenerator(sparta::log::MessageSource & info_logger,
-                                       MavisType* mavis_facade, const std::string & filename) :
+                                       MavisType* mavis_facade, const std::string & filename,
+                                       const std::string & edm_name,
+                                       const std::string & backend_config_name) :
         InstGenerator(info_logger, mavis_facade),
-        edm_(edm::EDMBackendFactory::create(filename, 2000, {}, "pegasus-cosim.db", 1000))
+        edm_(edm::EDMBackendFactory::create(edm_name, backend_config_name, filename))
     {
         // TODO: hardcoded things for pegasus backend - fix it(Ma-gi-cian)
     }
