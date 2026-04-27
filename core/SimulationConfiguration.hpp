@@ -41,23 +41,8 @@ namespace olympia
                 workload_param_.reset(
                     new sparta::Parameter<std::string>("workload", "", "Workload to run", ps));
             }
-
-            if (nullptr == ps->getParameter("edm_backend", false))
-            {
-                edm_backend_param_.reset(new sparta::Parameter<std::string>(
-                    "edm_backend", "",
-                    "Execution Driven Mode - Backend selection ( empty = trace / json mode )"));
-            }
-
-            if (nullptr == ps->getParameter("edm_config_file", false))
-            {
-                edm_config_file_.reset(new sparta::Parameter<std::string>(
-                    "edm_config_file", "", "Path to the EDM backend config yaml", ps));
-            }
         }
 
         std::unique_ptr<sparta::Parameter<std::string>> workload_param_;
-        std::unique_ptr<sparta::Parameter<std::string>> edm_backend_param_;
-        std::unique_ptr<sparta::Parameter<std::string>> edm_config_file_;
     };
 } // namespace olympia
