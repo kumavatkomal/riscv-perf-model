@@ -10,7 +10,7 @@
 
 #include "CPUFactory.hpp"
 #include "SimulationConfiguration.hpp"
-
+#include "sparta/kernel/SleeperThread.hpp"
 #include "OlympiaAllocators.hpp"
 
 OlympiaSim::OlympiaSim(sparta::Scheduler & scheduler, const uint32_t num_cores,
@@ -23,6 +23,7 @@ OlympiaSim::OlympiaSim(sparta::Scheduler & scheduler, const uint32_t num_cores,
     show_factories_(show_factories)
 {
     // Set up the CPU Resource Factory to be available through ResourceTreeNode
+    sparta::SleeperThread::disableForever();
     getResourceSet()->addResourceFactory<olympia::CPUFactory>();
 }
 

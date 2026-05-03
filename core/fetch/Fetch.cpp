@@ -58,18 +58,6 @@ namespace olympia
         // Capture when the simulation is stopped prematurely by the ROB i.e. hitting retire limit
         node->getParent()->registerForNotification<bool, Fetch, &Fetch::onROBTerminate_>(
             this, "rob_stopped_notif_channel", false /* ROB maybe not be constructed yet */);
-
-        if (dynamic_cast<EDMInstGenerator*>(inst_generator_.get()))
-        {
-            in_rob_retire_ack_edm_.registerConsumerHandler(
-                CREATE_SPARTA_HANDLER_WITH_DATA(Fetch, onEDMRetire_, InstPtr));
-            in_rob_flush_edm_.registerConsumerHandler(
-                CREATE_SPARTA_HANDLER_WITH_DATA(Fetch, onEDMFlush_, InstPtr));
-            in_lsu_commit_store_edm_.registerConsumerHandler(
-                CREATE_SPARTA_HANDLER_WITH_DATA(Fetch, onEDMCommitStore_, InstPtr));
-            in_lsu_drop_store_edm_.registerConsumerHandler(
-                CREATE_SPARTA_HANDLER_WITH_DATA(Fetch, onEDMDropStore_, InstPtr));
-        }
     }
 
     Fetch::~Fetch() {}
@@ -85,6 +73,17 @@ namespace olympia
             info_logger_, getMavis(getContainer()), workload->getValueAsString(),
             skip_nonuser_mode_, backend_, backend_config_file_);
 
+        if (dynamic_cast<EDMInstGenerator*>(inst_generator_.get()))
+        {
+            in_rob_retire_ack_edm_.registerConsumerHandler(
+                CREATE_SPARTA_HANDLER_WITH_DATA(Fetch, onEDMRetire_, InstPtr));
+            in_rob_flush_edm_.registerConsumerHandler(
+                CREATE_SPARTA_HANDLER_WITH_DATA(Fetch, onEDMFlush_, InstPtr));
+            in_lsu_commit_store_edm_.registerConsumerHandler(
+                CREATE_SPARTA_HANDLER_WITH_DATA(Fetch, onEDMCommitStore_, InstPtr));
+            in_lsu_drop_store_edm_.registerConsumerHandler(
+                CREATE_SPARTA_HANDLER_WITH_DATA(Fetch, onEDMDropStore_, InstPtr));
+        }
         ev_fetch_insts->schedule(1);
     }
 

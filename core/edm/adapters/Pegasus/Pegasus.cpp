@@ -25,7 +25,7 @@ namespace olympia::edm
         const std::map<std::string, std::string> pegasus_params = config["params"].as<std::map<std::string, std::string>>();
         const std::vector<std::vector<std::string>>  pegasus_loggers = config["pegasus_loggers"].as<std::vector<std::vector<std::string>>>();
         const std::string db_file = config["db_file"].as<std::string>();
-        const uint64_t snapshot_threshold = config["snapshot_threashold"].as<uint64_t>();
+        const uint64_t snapshot_threshold = config["snapshot_threshold"].as<uint64_t>();
 
 
         // read the config file and handle it
@@ -98,11 +98,12 @@ namespace olympia::edm
     void PegasusAdapter::commitStoreWrite(CoreId /*core_id*/, HartId /*hart_id*/, uint64_t iss_uid)
     {
         auto it = pending_events_.find(iss_uid);
-        sparta_assert(it != pending_events_.end(),
-                      "commitStoreWrite for iss_uid " << iss_uid << " not found in pending_events");
+        if(it == pending_events_.end())
+        {
+            return;
+        }
+
         cosim_->commitStoreWrite(it->second);
-        cosim_->commit(it->second);
-        pending_events_.erase(it);
     }
 
     void PegasusAdapter::dropStoreWrite(CoreId /*core_id*/, HartId /*hart_id*/, uint64_t iss_uid)

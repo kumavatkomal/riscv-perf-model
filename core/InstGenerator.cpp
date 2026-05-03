@@ -2,6 +2,7 @@
 #include "InstGenerator.hpp"
 #include "EDMTypes.hpp"
 #include "EDMFactory.hpp"
+#include "edm/EDMCheckpoint.hpp"
 #include "mavis/Mavis.h"
 #include "mavis/JSONUtils.hpp"
 #include <sparta/log/MessageSource.hpp>
@@ -405,29 +406,40 @@ namespace olympia
     {
         const uint64_t saved_iss_uid = inst_ptr->getRewindIterator<uint64_t>();
 
-        // find the checkpoint matching this instruction
         auto it = std::find_if(checkpoint_queue_.begin(), checkpoint_queue_.end(),
                                [saved_iss_uid](const edm::EDMCheckpoint & cp)
                                { return cp.iss_uid == saved_iss_uid; });
 
-        sparta_assert(it != checkpoint_queue_.end(), "reset: no checkpoint found for iss_uid "
-                                                         << saved_iss_uid
-                                                         << " pid:" << inst_ptr->getProgramID()
-                                                         << " uid:" << inst_ptr->getUniqueID());
+        if (it == checkpoint_queue_.end())
+        {
+            // Checkpoint was not found - two cases can occur here :
+            // 1. and already committed instruction is being committed again (encountered this with
+            // POST_SYNC flush)
+            // 2. an instruction that is newer than what we have ( error ?? how did olympia know
+            // about it -> will assert here)
+
+            if (!checkpoint_queue_.empty() && saved_iss_uid < checkpoint_queue_.front().iss_uid)
+            {
+                ILOG("Cannot reset to commited instruction iss uid: " << saved_iss_uid
+                                                                      << " (already retired uuid)");
+                it = checkpoint_queue_.begin();
+            }
+            else
+            {
+                sparta_assert(false, "reset: no checkpoint found for iss uid : "
+                                         << saved_iss_uid
+                                         << " program id: " << inst_ptr->getUniqueID());
+            }
+        }
 
         program_id_ = inst_ptr->getProgramID();
 
-        ILOG("Rewinding EDM to instruction pid:"
-             << program_id_ << " uid:" << inst_ptr->getUniqueID() << " iss_uid:" << saved_iss_uid
-             << (skip ? " (skipping to next)" : " (inclusive)"));
-
         edm_->flush(0, 0, *it);
-
-        // remove this checkpoint and everything younger
         checkpoint_queue_.erase(it, checkpoint_queue_.end());
-
         if (skip)
+        {
             ++program_id_;
+        }
     }
 
     void EDMInstGenerator::saveCheckpoint_(const edm::InstructionInfo & info,
@@ -466,10 +478,14 @@ namespace olympia
     void EDMInstGenerator::onFlush_(const InstPtr & inst)
     {
         const uint64_t iss_uid = inst->getRewindIterator<uint64_t>();
-        checkpoint_queue_.erase(std::remove_if(checkpoint_queue_.begin(), checkpoint_queue_.end(),
-                                               [iss_uid](const edm::EDMCheckpoint & cp)
-                                               { return cp.iss_uid == iss_uid; }),
-                                checkpoint_queue_.end());
+        auto it = std::find_if(checkpoint_queue_.begin(), checkpoint_queue_.end(),
+                               [iss_uid](const edm::EDMCheckpoint & cp)
+                               { return cp.iss_uid == iss_uid; });
+
+        if (it != checkpoint_queue_.end())
+        {
+            checkpoint_queue_.erase(it, checkpoint_queue_.end());
+        }
     }
 
     void EDMInstGenerator::onRetireStore_(const InstPtr & inst)
