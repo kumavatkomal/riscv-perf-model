@@ -22,7 +22,8 @@ public:
      * \param num_cores Number of cores to instantiate any nodes
      *                  created which match the description as they
      *                  are created
-     * \param workload The workload to run (JSON, stf trace)
+    * \\param workload The workload to run (JSON, stf trace, or EDM input)
+    * \\param edm_backend EDM backend selector (empty means trace/json mode)
      * \param instruction_limit The maximum number of instructions to
      *                          run.  0 means no limit
      * \param show_factories Print the registered factories to stdout
@@ -30,6 +31,11 @@ public:
     OlympiaSim(sparta::Scheduler & scheduler,
                const uint32_t num_cores,
                const std::string workload,
+                    const std::string edm_backend,
+                    const std::string edm_backend_config,
+                    const std::string edm_whisper_bin,
+                    const std::string edm_whisper_args,
+                    const std::string edm_whisper_keep_csv,
                const uint64_t instruction_limit=0,
                const bool show_factories = false);
 
@@ -71,6 +77,21 @@ private:
 
     //! Workload
     const std::string workload_;
+
+    //! EDM backend selector (empty => trace/json path)
+    const std::string edm_backend_;
+
+    //! Optional backend config file path
+    const std::string edm_backend_config_;
+
+    //! Whisper binary override
+    const std::string edm_whisper_bin_;
+
+    //! Whisper CLI arguments
+    const std::string edm_whisper_args_;
+
+    //! Whisper CSV retention flag
+    const std::string edm_whisper_keep_csv_;
 
     //! Instruction limit (set up -i option on command line)
     const uint64_t instruction_limit_;

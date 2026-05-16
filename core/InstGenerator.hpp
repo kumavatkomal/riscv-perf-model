@@ -7,20 +7,18 @@
 
 #pragma once
 
-#include <sparta/simulation/Unit.hpp>
 #include <string>
 #include <memory>
 
-#include "EDMTypes.hpp"
 #include "Inst.hpp"
 #include "decode/MavisUnit.hpp"
+#include "edm/EDMFactory.hpp"
 #include "mavis/JSONUtils.hpp"
 #include "sparta/utils/SpartaAssert.hpp"
 #include "sparta/log/MessageSource.hpp"
 #include "sparta/utils/LogUtils.hpp"
 
 #include "stf-inc/stf_inst_reader.hpp"
-#include "edm/EDMInterface.hpp"
 
 namespace olympia
 {
@@ -34,104 +32,111 @@ namespace olympia
      */
     class InstGenerator
     {
-      public:
-        InstGenerator(sparta::log::MessageSource & info_logger, MavisType* mavis_facade) :
+    public:
+        InstGenerator(sparta::log::MessageSource & info_logger, MavisType * mavis_facade) :
             info_logger_(info_logger),
-            mavis_facade_(mavis_facade)
-
-        {
-        }
-
+            mavis_facade_(mavis_facade) {}
         virtual ~InstGenerator() {}
-
-        virtual InstPtr getNextInst(const sparta::Clock* clk) = 0;
-        static std::unique_ptr<InstGenerator>
-        createGenerator(sparta::log::MessageSource & info_logger, MavisType* mavis_facade,
-                        const std::string & filename, const bool skip_nonuser_mode,
-                        const std::string & edm_name, const std::string & backend_config_file);
+        virtual InstPtr getNextInst(const sparta::Clock * clk) = 0;
+        static std::unique_ptr<InstGenerator> createGenerator(sparta::log::MessageSource & info_logger,
+                                                              MavisType * mavis_facade,
+                                                              const std::string & filename,
+                                                              const bool skip_nonuser_mode,
+                                                              const std::string & edm_backend = "",
+                                                              const edm::EDMBackendFactory::BackendParams & backend_params = {});
         virtual bool isDone() const = 0;
         virtual void reset(const InstPtr &, const bool) = 0;
 
-      protected:
+    protected:
         sparta::log::MessageSource & info_logger_;
-        MavisType* mavis_facade_ = nullptr;
-        uint64_t unique_id_ = 0;
-        uint64_t program_id_ = 1;
+        MavisType * mavis_facade_ = nullptr;
+        uint64_t    unique_id_ = 0;
+        uint64_t    program_id_ = 1;
     };
 
     // Generates instructions from a JSON file
     class JSONInstGenerator : public InstGenerator
     {
-      public:
-        JSONInstGenerator(sparta::log::MessageSource & info_logger, MavisType* mavis_facade,
+    public:
+        JSONInstGenerator(sparta::log::MessageSource & info_logger,
+                          MavisType * mavis_facade,
                           const std::string & filename);
-        InstPtr getNextInst(const sparta::Clock* clk) override final;
+        InstPtr getNextInst(const sparta::Clock * clk) override final;
 
         bool isDone() const override final;
         void reset(const InstPtr &, const bool) override final;
 
-      private:
-        boost::json::array jobj_;
-        uint64_t curr_inst_index_ = 0;
-        uint64_t n_insts_ = 0;
+
+    private:
+        boost::json::array  jobj_;
+        uint64_t            curr_inst_index_ = 0;
+        uint64_t            n_insts_ = 0;
     };
 
     // Generates instructions from an STF Trace file
     class TraceInstGenerator : public InstGenerator
     {
-      public:
+    public:
         // Creates a TraceInstGenerator with the given mavis facade
         // and filename.  The parameter skip_nonuser_mode allows the
         // trace generator to skip system instructions if present
-        TraceInstGenerator(sparta::log::MessageSource & info_logger, MavisType* mavis_facade,
-                           const std::string & filename, const bool skip_nonuser_mode);
+        TraceInstGenerator(sparta::log::MessageSource & info_logger,
+                           MavisType * mavis_facade,
+                           const std::string & filename,
+                           const bool skip_nonuser_mode);
 
-        InstPtr getNextInst(const sparta::Clock* clk) override final;
+        InstPtr getNextInst(const sparta::Clock * clk) override final;
 
         bool isDone() const override final;
         void reset(const InstPtr &, const bool) override final;
-
-      private:
+    private:
         std::unique_ptr<stf::STFInstReader> reader_;
 
         // Always points to the *next* stf inst
         stf::STFInstReader::iterator next_it_;
     };
 
+    // Generates instructions from an EDM backend such as Whisper.
+    //
+    // This class is intentionally small right now. Its job is to prove
+    // that the EDM plumbing works end-to-end without changing existing
+    // JSON/STF behavior. Once real Whisper calls are wired, this class
+    // is where branch-steering, checkpoint/rewind, and retire feedback
+    // logic will grow.
     class EDMInstGenerator : public InstGenerator
     {
-      public:
-        // Create an EDMInstGenerator with the mavis facade
-        // and the filename - that is the name of the binary
-        // to be passed onto the backend
-        EDMInstGenerator(sparta::log::MessageSource & info_logger, MavisType* mavis_facade,
-                         const std::string & filename, const std::string & edm_name,
-                         const std::string & backend_config_file);
+    public:
+        EDMInstGenerator(sparta::log::MessageSource & info_logger,
+                         MavisType * mavis_facade,
+                         const std::string & workload,
+                         const std::string & backend_name,
+                         const edm::EDMBackendFactory::BackendParams & backend_params);
 
-        InstPtr getNextInst(const sparta::Clock* clk) override final;
+        InstPtr getNextInst(const sparta::Clock * clk) override final;
 
         bool isDone() const override final;
         void reset(const InstPtr &, const bool) override final;
-
-        // These functions will be called via the fetch's ports to make sure
-        // that the state of the backend and olympia are in sync
 
         void onRetire_(const InstPtr & inst);
         void onFlush_(const InstPtr & inst);
         void onRetireStore_(const InstPtr & inst);
         void onDropStore_(const InstPtr & inst);
 
-      private:
-        void saveCheckpoint_(const edm::InstructionInfo & info,
-                             const edm::SteeringDecision & decision);
+    private:
+        std::string workload_;
+        std::string backend_name_;
+        edm::EDMBackendFactory::BackendParams backend_params_;
+
+        std::unique_ptr<edm::EDMInterface> edm_backend_;
+        std::vector<edm::EDMCheckpoint> checkpoint_queue_;
+
+        // Single-core/single-hart default for initial integration.
+        // Multi-core routing can be added cleanly in a later patch.
+        edm::CoreId core_id_ = 0;
+        edm::HartId hart_id_ = 0;
 
         edm::SteeringDecision evaluateRules_(const edm::Addr next_pc);
-
-        std::unique_ptr<edm::EDMInterface> edm_;
-
-        uint64_t unique_id_ = 0;
-        uint64_t program_id_ = 1;
-
-        std::deque<edm::EDMCheckpoint> checkpoint_queue_;
+        void saveCheckpoint_(const edm::InstructionInfo & info,
+                             const edm::SteeringDecision & decision);
     };
-} // namespace olympia
+}

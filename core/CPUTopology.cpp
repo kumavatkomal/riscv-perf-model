@@ -305,8 +305,16 @@ olympia::CoreTopologySimple::CoreTopologySimple(){
             "cpu.core*.lsu.ports.in_rob_retire_ack"
         },
         {
+            "cpu.core*.rob.ports.out_rob_retire_ack_edm",
+            "cpu.core*.fetch.ports.in_rob_retire_ack_edm"
+        },
+        {
             "cpu.core*.rob.ports.out_rob_retire_ack_rename",
             "cpu.core*.rename.ports.in_rename_retire_ack"
+        },
+        {
+            "cpu.core*.rob.ports.out_rob_flush_edm",
+            "cpu.core*.fetch.ports.in_rob_flush_edm"
         },
         {
             "cpu.core*.flushmanager.ports.out_flush_upper",
@@ -333,28 +341,20 @@ olympia::CoreTopologySimple::CoreTopologySimple(){
             "cpu.core*.lsu.ports.in_reorder_flush"
         },
         {
-            "cpu.core*.flushmanager.ports.out_flush_upper",
-            "cpu.core*.fetch.ports.in_fetch_flush_redirect"
-        },
-        {
-            "cpu.core*.flushmanager.ports.out_flush_lower",
-            "cpu.core*.fetch.ports.in_fetch_flush_redirect"
-        },
-        {
-            "cpu.core*.rob.ports.out_rob_retire_ack_edm",
-            "cpu.core*.fetch.ports.in_rob_retire_ack_edm"
-        },
-        {
-            "cpu.core*.rob.ports.out_rob_flush_edm",
-            "cpu.core*.fetch.ports.in_rob_flush_edm"
-        },
-        {
             "cpu.core*.lsu.ports.out_lsu_commit_store_edm",
             "cpu.core*.fetch.ports.in_lsu_commit_store_edm"
         },
         {
             "cpu.core*.lsu.ports.out_lsu_drop_store_edm",
             "cpu.core*.fetch.ports.in_lsu_drop_store_edm"
+        },
+        {
+            "cpu.core*.flushmanager.ports.out_flush_upper",
+            "cpu.core*.fetch.ports.in_fetch_flush_redirect"
+        },
+        {
+            "cpu.core*.flushmanager.ports.out_flush_lower",
+            "cpu.core*.fetch.ports.in_fetch_flush_redirect"
         }
     };
 }

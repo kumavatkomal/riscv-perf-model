@@ -1,5 +1,5 @@
 #include "Pegasus.hpp"
-#include "EDMTypes.hpp"
+#include "edm/EDMTypes.hpp"
 #include <cstdint>
 #include <iostream>
 #include <map>
@@ -12,7 +12,9 @@
 
 namespace olympia::edm
 {
-    PegasusAdapter::PegasusAdapter(const std::string & config_file, const std::string & filename)
+    PegasusAdapter::PegasusAdapter(const std::string & config_file,
+                                   const std::string & filename,
+                                   const EDMBackendFactory::BackendParams & /*params*/)
 
     {
         if(config_file.empty())

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "edm/EDMCheckpoint.hpp"
+#include "edm/EDMFactory.hpp"
 #include "edm/EDMInterface.hpp"
 #include "edm/EDMTypes.hpp"
 #include <memory>
@@ -17,7 +18,9 @@ namespace olympia::edm
     class PegasusAdapter : public EDMInterface
     {
       public:
-        PegasusAdapter(const std::string & config_file, const std::string & filename);
+        PegasusAdapter(const std::string & config_file,
+                 const std::string & filename,
+                 const EDMBackendFactory::BackendParams & params);
 
         ~PegasusAdapter();
 

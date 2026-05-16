@@ -35,6 +35,8 @@ add_library(instgen
   InstArchInfo.cpp
   InstGroup.cpp
   InstGenerator.cpp
+  edm/EDMFactory.cpp
+  edm/adapters/whisper/WhisperEDMAdapter.cpp
 )
 
 find_package(Boost REQUIRED COMPONENTS json)
@@ -55,11 +57,5 @@ add_subdirectory(dispatch)
 add_subdirectory(execute)
 add_subdirectory(vector)
 add_subdirectory(lsu)
-
-if (EDM_ENABLED)
-  add_subdirectory(edm)
-
-  target_link_libraries(instgen edm)
-endif()
 
 target_link_libraries(core fetch decode rename dispatch execute vector lsu instgen)

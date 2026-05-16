@@ -1,3 +1,5 @@
+#pragma once
+
 #include "EDMInterface.hpp"
 #include <functional>
 #include <map>
@@ -9,12 +11,16 @@ namespace olympia::edm
     class EDMBackendFactory
     {
       public:
-        using BackendCreator = std::function<std::unique_ptr<EDMInterface>(
-            const std::string & config_file, const std::string & filename)>;
+                using BackendParams = std::map<std::string, std::string>;
+                using BackendCreator = std::function<std::unique_ptr<EDMInterface>(
+                        const std::string & config_file,
+                        const std::string & filename,
+                        const BackendParams & params)>;
 
         static std::unique_ptr<EDMInterface> create(const std::string & backend_name,
-                                                    const std::string & config_file,
-                                                    const std::string & filename);
+                                const std::string & config_file,
+                                const std::string & filename,
+                                const BackendParams & params = {});
 
         // Registering the backend
         static void registerBackend(const std::string & name, BackendCreator creator);
@@ -37,10 +43,12 @@ namespace olympia::edm
     {
         BackendRegistrar(const std::string & name)
         {
-
             EDMBackendFactory::registerBackend(
-                name, [](const std::string & config_file, const std::string & filename)
-                { return std::make_unique<Implementation>(config_file, filename); });
+                name,
+                [](const std::string & config_file,
+                   const std::string & filename,
+                   const EDMBackendFactory::BackendParams & params)
+                { return std::make_unique<Implementation>(config_file, filename, params); });
         }
     };
 } // namespace olympia::edm

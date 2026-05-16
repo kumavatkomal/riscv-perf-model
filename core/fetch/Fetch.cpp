@@ -59,6 +59,50 @@ namespace olympia
         node->getParent()->registerForNotification<bool, Fetch, &Fetch::onROBTerminate_>(
             this, "rob_stopped_notif_channel", false /* ROB maybe not be constructed yet */);
 
+    }
+
+    Fetch::~Fetch() {}
+
+    void Fetch::initialize_()
+    {
+        // Get the CPU Node
+        auto cpu_node = getContainer()->getParent()->getParent();
+        auto extension = sparta::notNull(cpu_node->getExtension("simulation_configuration"));
+        auto workload = extension->getParameters()->getParameter("workload");
+        auto edm_backend = extension->getParameters()->getParameter("edm_backend");
+        auto edm_backend_config = extension->getParameters()->getParameter("edm_backend_config");
+        auto edm_whisper_bin = extension->getParameters()->getParameter("edm_whisper_bin");
+        auto edm_whisper_args = extension->getParameters()->getParameter("edm_whisper_args");
+        auto edm_whisper_keep_csv = extension->getParameters()->getParameter("edm_whisper_keep_csv");
+
+        edm::EDMBackendFactory::BackendParams backend_params;
+        if (!edm_backend_config->getValueAsString().empty())
+        {
+            backend_params["backend_config"] = edm_backend_config->getValueAsString();
+        }
+        if (!edm_whisper_bin->getValueAsString().empty())
+        {
+            backend_params["whisper_bin"] = edm_whisper_bin->getValueAsString();
+        }
+        if (!edm_whisper_args->getValueAsString().empty())
+        {
+            backend_params["whisper_args"] = edm_whisper_args->getValueAsString();
+        }
+        if (!edm_whisper_keep_csv->getValueAsString().empty())
+        {
+            backend_params["whisper_keep_csv"] = edm_whisper_keep_csv->getValueAsString();
+        }
+
+        std::string backend_name = edm_backend->getValueAsString();
+        if (backend_name.empty())
+        {
+            backend_name = backend_;
+        }
+
+        inst_generator_ = InstGenerator::createGenerator(
+            info_logger_, getMavis(getContainer()), workload->getValueAsString(),
+            skip_nonuser_mode_, backend_name, backend_params);
+
         if (dynamic_cast<EDMInstGenerator*>(inst_generator_.get()))
         {
             in_rob_retire_ack_edm_.registerConsumerHandler(
@@ -70,20 +114,6 @@ namespace olympia
             in_lsu_drop_store_edm_.registerConsumerHandler(
                 CREATE_SPARTA_HANDLER_WITH_DATA(Fetch, onEDMDropStore_, InstPtr));
         }
-    }
-
-    Fetch::~Fetch() {}
-
-    void Fetch::initialize_()
-    {
-        // Get the CPU Node
-        auto cpu_node = getContainer()->getParent()->getParent();
-        auto extension = sparta::notNull(cpu_node->getExtension("simulation_configuration"));
-        auto workload = extension->getParameters()->getParameter("workload");
-
-        inst_generator_ = InstGenerator::createGenerator(
-            info_logger_, getMavis(getContainer()), workload->getValueAsString(),
-            skip_nonuser_mode_, backend_, backend_config_file_);
 
         ev_fetch_insts->schedule(1);
     }

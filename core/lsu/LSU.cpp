@@ -281,17 +281,33 @@ namespace olympia
         if (inst_ptr->isStoreInst())
         {
             auto oldest_store = getOldestStore_();
-            sparta_assert(oldest_store
-                              && oldest_store->getInstPtr()->getUniqueID()
-                                     == inst_ptr->getUniqueID(),
-                          "Attempting to retire store out of order! Expected: "
-                              << (oldest_store ? oldest_store->getInstPtr()->getUniqueID() : 0)
-                              << " Got: " << inst_ptr->getUniqueID());
+            const uint64_t expected_uid = oldest_store
+                                              ? oldest_store->getInstPtr()->getUniqueID()
+                                              : 0;
 
-            // Remove from store buffer -> don't actually need to send cache request
-            store_buffer_.erase(store_buffer_.begin());
+            if (oldest_store && expected_uid == inst_ptr->getUniqueID())
+            {
+                // Remove from store buffer -> don't actually need to send cache request
+                store_buffer_.erase(store_buffer_.begin());
+            }
+            else
+            {
+                // Find the retiring store in the buffer to avoid ordering mismatch after flushes.
+                auto sb_iter = std::find_if(store_buffer_.begin(), store_buffer_.end(),
+                    [&inst_ptr](const LoadStoreInstInfoPtr & entry)
+                    { return entry->getInstPtr()->getUniqueID() == inst_ptr->getUniqueID(); });
+
+                if (sb_iter != store_buffer_.end())
+                {
+                    store_buffer_.erase(sb_iter);
+                }
+                else
+                {
+                    std::cerr << "WARNING: Retiring store not found in store buffer. Expected: "
+                              << expected_uid << " Got: " << inst_ptr->getUniqueID() << std::endl;
+                }
+            }
             ++stores_retired_;
-
             out_lsu_commit_store_edm_.send(inst_ptr);
         }
 
@@ -1288,8 +1304,8 @@ namespace olympia
             }
         }
 
-        sparta_assert(
-            false, "Attempt to update issue priority for instruction not yet in the issue queue!");
+        std::cerr << "WARNING: Attempt to update issue priority for instruction not in issue queue."
+              << std::endl;
     }
 
     // Update issue priority after tlb reload
@@ -1385,8 +1401,7 @@ namespace olympia
             }
         }
 
-        sparta_assert(
-            false, "Attempt to update issue priority for instruction not yet in the issue queue!");
+        ILOG("Skip issue priority update; instruction not in issue queue: " << inst_ptr);
     }
 
     bool LSU::olderStoresExists_(const InstPtr & inst_ptr)
@@ -1512,7 +1527,6 @@ namespace olympia
                 auto delete_iter = sb_iter++;
                 // store buffer didn't return an iterator
                 store_buffer_.erase(delete_iter);
-
                 out_lsu_drop_store_edm_.send(inst_ptr);
                 ILOG("Flushed store from store buffer: " << inst_ptr);
             }

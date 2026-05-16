@@ -17,7 +17,8 @@ const char USAGE[] =
     "    [-i insts] [-r RUNTIME] [--show-tree] [--show-dag]\n"
     "    [-p PATTERN VAL] [-c FILENAME]\n"
     "    [-l PATTERN CATEGORY DEST]\n"
-    "    [-h,--help] <workload [stf trace or JSON]>\n"
+    "    [--edm-backend BACKEND]\n"
+    "    [-h,--help] <workload [stf trace, JSON, or EDM input]>\n"
     "\n";
 
 constexpr char VERSION_VARNAME[] = "version,v"; //!< Name of option to show version
@@ -27,6 +28,11 @@ int main(int argc, char **argv)
     uint64_t ilimit = 0;
     uint32_t num_cores = 1;
     std::string workload;
+    std::string edm_backend;
+    std::string edm_backend_config;
+    std::string edm_whisper_bin;
+    std::string edm_whisper_args;
+    std::string edm_whisper_keep_csv;
     const char * WORKLOAD = "workload";
 
     sparta::app::DefaultValues DEFAULTS;
@@ -69,9 +75,29 @@ int main(int argc, char **argv)
              "The number of cores in simulation", "The number of cores in simulation")
             ("show-factories",
              "Show the registered factories")
+            ("edm-backend",
+             sparta::app::named_value<std::string>("BACKEND", &edm_backend)->default_value(""),
+             "Select EDM backend (e.g., pegasus, whisper). Empty means trace/json mode.",
+             "Select EDM backend")
+            ("edm-backend-config",
+             sparta::app::named_value<std::string>("FILE", &edm_backend_config)->default_value(""),
+             "Optional EDM backend config file path",
+             "EDM backend config")
+            ("edm-whisper-bin",
+             sparta::app::named_value<std::string>("PATH", &edm_whisper_bin)->default_value(""),
+             "Override Whisper binary path",
+             "Whisper binary path")
+            ("edm-whisper-args",
+             sparta::app::named_value<std::string>("ARGS", &edm_whisper_args)->default_value(""),
+             "Extra Whisper CLI arguments",
+             "Whisper args")
+            ("edm-whisper-keep-csv",
+             sparta::app::named_value<std::string>("BOOL", &edm_whisper_keep_csv)->default_value(""),
+             "Keep Whisper CSV trace (true/false/1/0)",
+             "Whisper CSV retention")
             (WORKLOAD,
              sparta::app::named_value<std::string>(WORKLOAD, &workload),
-             "Specifies the instruction workload (trace, JSON)");
+             "Specifies the instruction workload (trace, JSON, or EDM input)");
 
         // Add any positional command-line options
         po::positional_options_description& pos_opts = cls.getPositionalOptions();
@@ -105,6 +131,11 @@ int main(int argc, char **argv)
         OlympiaSim sim(scheduler,
                        num_cores, // cores
                        workload,
+                       edm_backend,
+                       edm_backend_config,
+                       edm_whisper_bin,
+                       edm_whisper_args,
+                       edm_whisper_keep_csv,
                        ilimit,
                        show_factories); // run for ilimit instructions
 

@@ -50,13 +50,14 @@ namespace olympia
             PARAMETER(uint32_t, ldst_inst_queue_size, 8, "LSU ldst inst queue size")
             PARAMETER(uint32_t, replay_buffer_size, ldst_inst_queue_size, "Replay buffer size")
             PARAMETER(uint32_t, replay_issue_delay, 3, "Replay Issue delay")
-            // PARAMETER(uint32_t, store_buffer_size, ldst_inst_queue_size, "Size of the store
-            // buffer") LSU microarchitecture parameters
+            // PARAMETER(uint32_t, store_buffer_size, ldst_inst_queue_size, "Size of the store buffer")
+            // LSU microarchitecture parameters
             PARAMETER(
                 bool, allow_speculative_load_exec, false,
                 "Allow loads to proceed speculatively before all older store addresses are known")
-            PARAMETER(bool, allow_data_forwarding, true,
-                      "Allow data forwarding to bypass the cache look up / memory access")
+            PARAMETER(
+                bool, allow_data_forwarding, true,
+                "Allow data forwarding to bypass the cache look up / memory access")
             // Pipeline length
             PARAMETER(uint32_t, mmu_lookup_stage_length, 1, "Length of the mmu lookup stage")
             PARAMETER(uint32_t, cache_lookup_stage_length, 1, "Length of the cache lookup stage")
@@ -77,7 +78,9 @@ namespace olympia
         static const char name[];
 
         // return allow_data_forwarding for test
-        bool allowDataForwardingEX() const { return allow_data_forwarding_; }
+        bool allowDataForwardingEX() const {
+            return allow_data_forwarding_;
+        }
 
         ////////////////////////////////////////////////////////////////////////////////
         // Type Name/Alias Declaration
@@ -130,10 +133,9 @@ namespace olympia
         sparta::DataOutPort<MemoryAccessInfoPtr> out_cache_lookup_req_{&unit_port_set_,
                                                                        "out_cache_lookup_req", 0};
 
-        sparta::DataOutPort<InstPtr> out_lsu_commit_store_edm_{&unit_port_set_,
-                                                               "out_lsu_commit_store_edm"};
-        sparta::DataOutPort<InstPtr> out_lsu_drop_store_edm_{&unit_port_set_,
-                                                             "out_lsu_drop_store_edm"};
+        // EDM feedback ports
+        sparta::DataOutPort<InstPtr> out_lsu_commit_store_edm_{&unit_port_set_, "out_lsu_commit_store_edm"};
+        sparta::DataOutPort<InstPtr> out_lsu_drop_store_edm_{&unit_port_set_, "out_lsu_drop_store_edm"};
 
         ////////////////////////////////////////////////////////////////////////////////
         // Internal States
@@ -278,7 +280,7 @@ namespace olympia
         void allocateInstToStoreBuffer_(const InstPtr & inst_ptr);
 
         // check whether load inst could be forwarded by store
-        bool tryStoreToLoadForwarding(const InstPtr & load_inst_ptr) const;
+        bool tryStoreToLoadForwarding(const InstPtr& load_inst_ptr) const ;
 
         // get oldest store
         LoadStoreInstInfoPtr getOldestStore_() const;
