@@ -15,18 +15,19 @@ namespace olympia::edm
     PegasusAdapter::PegasusAdapter(const std::string & config_file, const std::string & filename)
 
     {
-        if(config_file.empty())
+        if (config_file.empty())
         {
             throw;
         }
 
         YAML::Node config = YAML::LoadFile(config_file);
         const uint64_t ilimit = config["ilimit"].as<uint64_t>();
-        const std::map<std::string, std::string> pegasus_params = config["params"].as<std::map<std::string, std::string>>();
-        const std::vector<std::vector<std::string>>  pegasus_loggers = config["pegasus_loggers"].as<std::vector<std::vector<std::string>>>();
+        const std::map<std::string, std::string> pegasus_params =
+            config["params"].as<std::map<std::string, std::string>>();
+        const std::vector<std::vector<std::string>> pegasus_loggers =
+            config["pegasus_loggers"].as<std::vector<std::vector<std::string>>>();
         const std::string db_file = config["db_file"].as<std::string>();
         const uint64_t snapshot_threshold = config["snapshot_threshold"].as<uint64_t>();
-
 
         // read the config file and handle it
         cosim_ = std::make_unique<pegasus::cosim::PegasusCoSim>(
@@ -98,7 +99,7 @@ namespace olympia::edm
     void PegasusAdapter::commitStoreWrite(CoreId /*core_id*/, HartId /*hart_id*/, uint64_t iss_uid)
     {
         auto it = pending_events_.find(iss_uid);
-        if(it == pending_events_.end())
+        if (it == pending_events_.end())
         {
             return;
         }
@@ -117,6 +118,31 @@ namespace olympia::edm
         }
     }
 
+    // void PegasusAdapter::flush(CoreId /*core_id*/, HartId /*hart_id*/,
+    //                            const EDMCheckpoint & checkpoint)
+    // {
+    //     if (pending_events_.empty())
+    //     {
+    //         return;
+    //     }
+
+    //     if (checkpoint.iss_uid != std::numeric_limits<uint64_t>::max())
+    //     {
+    //         auto it = pending_events_.find(checkpoint.iss_uid);
+    //         sparta_assert(it != pending_events_.end(), "flush : iss_uid "
+    //                                                        << checkpoint.iss_uid
+    //                                                        << "not found in pending_events");
+    //         cosim_->flush(it->second, false);
+    //         pending_events_.erase(it, pending_events_.end());
+    //     }
+    //     else
+    //     {
+    //         auto & oldest = pending_events_.begin()->second;
+    //         cosim_->flush(oldest, false);
+    //         pending_events_.clear();
+    //     }
+    // }
+
     void PegasusAdapter::flush(CoreId /*core_id*/, HartId /*hart_id*/,
                                const EDMCheckpoint & checkpoint)
     {
@@ -128,9 +154,15 @@ namespace olympia::edm
         if (checkpoint.iss_uid != std::numeric_limits<uint64_t>::max())
         {
             auto it = pending_events_.find(checkpoint.iss_uid);
-            sparta_assert(it != pending_events_.end(), "flush : iss_uid "
-                                                           << checkpoint.iss_uid
-                                                           << "not found in pending_events");
+
+            if (it == pending_events_.end())
+            {
+                auto & oldest = pending_events_.begin()->second;
+                cosim_->flush(oldest, false);
+                pending_events_.clear();
+                return;
+            }
+
             cosim_->flush(it->second, false);
             pending_events_.erase(it, pending_events_.end());
         }
@@ -215,10 +247,5 @@ namespace olympia::edm
 
         return info;
     }
-
-    static olympia::edm::BackendRegistrar<olympia::edm::PegasusAdapter>
-        s_pegasus_registrar("pegasus");
-
-    void forcePegasusLink() {};
 
 } // namespace olympia::edm

@@ -1,15 +1,11 @@
 #include "EDMFactory.hpp"
+#include "Pegasus.hpp"
 #include <sparta/utils/SpartaAssert.hpp>
 
 namespace olympia::edm
 {
-    // forward declaring the force link functions
-    void forcePegasusLink();
-
     std::map<std::string, EDMBackendFactory::BackendCreator> & EDMBackendFactory::getRegistry()
     {
-        static bool once = (forcePegasusLink(), true);
-        (void)once;
         static std::map<std::string, BackendCreator> registry;
         return registry;
     }
@@ -31,8 +27,35 @@ namespace olympia::edm
     }
 
     std::unique_ptr<EDMInterface> EDMBackendFactory::create(const std::string & backend_name,
-                                                            const std::string & config_file, const std::string & filename)
+                                                            const std::string & config_file,
+                                                            const std::string & filename)
     {
+
+        static bool link = [](){
+            EDMBackendFactory::registerBackend("pegasus", [](const std::string & config_file, const std::string& filename) {
+                return std::make_unique<PegasusAdapter>(config_file, filename);
+            });
+            return true;
+        }();
+        (void)link;
+
+        /**
+        For future reference if you wish to add another adapter say Whisper, the above lamdba will be : 
+        //  static bool link = []() {
+        //     EDMBackendFactory::registerBackend(
+        //         "pegasus",
+        //         [](const std::string & cfg, const std::string & fn) {
+        //             return std::make_unique<PegasusAdapter>(cfg, fn);
+        //         });
+        //     EDMBackendFactory::registerBackend(
+        //         "whisper",
+        //         [](const std::string & cfg, const std::string & fn) {
+        //             return std::make_unique<WhisperAdapter>(cfg, fn);
+        //         });
+        //     return true;
+        // }(); 
+        */
+
         auto & reg = getRegistry();
         auto it = reg.find(backend_name);
         sparta_assert(it != reg.end(),
