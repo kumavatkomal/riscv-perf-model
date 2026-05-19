@@ -11,14 +11,6 @@
  *     update BHT direction state, then refresh BTB metadata.
  */
 
-namespace
-{
-    bool isPowerOfTwo(const uint32_t value)
-    {
-        return value && ((value & (value - 1)) == 0);
-    }
-}
-
 namespace olympia
 {
 namespace BranchPredictor
@@ -40,8 +32,8 @@ namespace BranchPredictor
         sparta_assert(bht_entries_ > 0, "BHT entries must be > 0");
         sparta_assert((btb_entries_ % btb_ways_) == 0,
                       "BTB entries must be divisible by BTB ways");
-        sparta_assert(isPowerOfTwo(btb_sets_), "BTB sets must be a power of two");
-        sparta_assert(isPowerOfTwo(bht_entries_), "BHT entries must be a power of two");
+        sparta_assert(sparta::utils::is_power_of_2(btb_sets_), "BTB sets must be a power of two");
+        sparta_assert(sparta::utils::is_power_of_2(bht_entries_), "BHT entries must be a power of two");
 
         // Use 1KB pseudo-lines so each BTB entry maps to one cache line.
         btb_replacement_policy_ = olympia::ReplacementFactory::selectReplacementPolicy("LRU", btb_ways_);
@@ -63,17 +55,14 @@ namespace BranchPredictor
         return static_cast<uint32_t>((fetch_pc >> 1) & (bht_entries_ - 1));
     }
 
-    bool EnhancedBranchPredictor::btbLookup_(uint64_t fetch_pc, BTBEntry * entry) {
-        auto cache_line = btb_cache_->peekLine(btbCacheAddress_(fetch_pc));
+    BTBEntry* EnhancedBranchPredictor::btbLookup_(uint64_t fetch_pc) {
+        auto* cache_line = btb_cache_->getLine(btbCacheAddress_(fetch_pc));
         if ((cache_line != nullptr) && cache_line->isValid()) {
-            if (entry != nullptr) {
-                *entry = cache_line->btb_entry;
-            }
             // Keep replacement state hot for recently used BTB lines.
             btb_cache_->touchMRU(*cache_line);
-            return true;
+            return &cache_line->btb_entry;
         }
-        return false;
+        return nullptr;
     }
 
     void EnhancedBranchPredictor::btbUpdate_(uint64_t fetch_pc, const BTBEntry & entry) {
@@ -81,7 +70,9 @@ namespace BranchPredictor
         // One path for both invalid-line fill and victim replacement.
         auto & replacement_line = btb_cache_->getLineForReplacementWithInvalidCheck(btb_addr);
         btb_cache_->allocateWithMRUUpdate(replacement_line, btb_addr);
-        replacement_line.btb_entry = entry;
+        // Directly modify the entry in place
+        replacement_line.btb_entry.branch_idx = entry.branch_idx;
+        replacement_line.btb_entry.predicted_PC = entry.predicted_PC;
     }
 
     bool EnhancedBranchPredictor::bhtPredict_(uint64_t fetch_pc) const {
@@ -102,11 +93,11 @@ namespace BranchPredictor
         prediction.branch_idx = max_fetch_insts_;
         prediction.predicted_PC = input.fetch_PC + max_fetch_insts_ * bytes_per_inst;
 
-        BTBEntry btb_entry;
-        if (btbLookup_(input.fetch_PC, &btb_entry)) {
-            prediction.branch_idx = btb_entry.branch_idx;
+        BTBEntry* btb_entry = btbLookup_(input.fetch_PC);
+        if (btb_entry != nullptr) {
+            prediction.branch_idx = btb_entry->branch_idx;
             if (bhtPredict_(input.fetch_PC)) {
-                prediction.predicted_PC = btb_entry.predicted_PC;
+                prediction.predicted_PC = btb_entry->predicted_PC;
             } else {
                 prediction.predicted_PC = input.fetch_PC + prediction.branch_idx + bytes_per_inst;
             }
@@ -141,22 +132,21 @@ namespace BranchPredictor
 
         bhtUpdate_(update.fetch_PC, update.actually_taken);
 
-        BTBEntry entry;
-        const bool btb_hit = btbLookup_(update.fetch_PC, &entry);
-
-        if (btb_hit) {
-            entry.branch_idx = update.branch_idx;
+        // Optimization: Only allocate BTB entries for taken branches that were mispredicted
+        // or for updating existing BTB entries
+        BTBEntry* existing_entry = btbLookup_(update.fetch_PC);
+        
+        if (existing_entry != nullptr) {
+            // Update existing BTB entry
+            existing_entry->branch_idx = update.branch_idx;
             if (update.actually_taken) {
-                entry.predicted_PC = update.corrected_PC;
+                existing_entry->predicted_PC = update.corrected_PC;
             }
-        } else {
-            const uint64_t default_target = update.actually_taken ?
-                update.corrected_PC :
-                (update.fetch_PC + update.branch_idx + bytes_per_inst);
-            entry = BTBEntry(update.branch_idx, default_target);
+        } else if (update.actually_taken) {
+            // Only allocate new BTB entry for taken branches
+            BTBEntry new_entry(update.branch_idx, update.corrected_PC);
+            btbUpdate_(update.fetch_PC, new_entry);
         }
-
-        btbUpdate_(update.fetch_PC, entry);
     }
 
 } // namespace BranchPredictor

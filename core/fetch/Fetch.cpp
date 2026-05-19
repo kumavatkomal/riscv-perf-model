@@ -61,13 +61,8 @@ namespace olympia
         node->getParent()->registerForNotification<bool, Fetch, &Fetch::onROBTerminate_>(
             this, "rob_stopped_notif_channel", false /* ROB maybe not be constructed yet */);
 
-        std::transform(branch_predictor_name_.begin(), branch_predictor_name_.end(),
-                       branch_predictor_name_.begin(),
-                       [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
-
-        const auto is_power_of_two = [](const uint32_t value) {
-            return value && ((value & (value - 1)) == 0);
-        };
+        std::for_each(branch_predictor_name_.begin(), branch_predictor_name_.end(),
+                      [](char& ch) { ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch))); });
 
         // Keep predictor selection explicit here so config errors fail fast.
         if (branch_predictor_name_ == "simple") {
@@ -78,9 +73,9 @@ namespace olympia
             sparta_assert(enhanced_bht_entries_ > 0, "enhanced_bht_entries must be > 0");
             sparta_assert((enhanced_btb_entries_ % enhanced_btb_ways_) == 0,
                           "enhanced_btb_entries must be divisible by enhanced_btb_ways");
-            sparta_assert(is_power_of_two(enhanced_btb_entries_ / enhanced_btb_ways_),
+            sparta_assert(sparta::utils::is_power_of_2(enhanced_btb_entries_ / enhanced_btb_ways_),
                           "enhanced BTB set count must be power-of-two");
-            sparta_assert(is_power_of_two(enhanced_bht_entries_),
+            sparta_assert(sparta::utils::is_power_of_2(enhanced_bht_entries_),
                           "enhanced_bht_entries must be power-of-two");
 
             branch_predictor_.reset(new BranchPredictor::EnhancedBranchPredictor(
@@ -237,40 +232,26 @@ namespace olympia
             return;
         }
 
+        // Early exit if no branches in this fetch packet
+        auto branch_it = std::find_if(insts_to_send->begin(), insts_to_send->end(),
+                                       [](const InstPtr& inst) { return inst->isBranch(); });
+        
+        if (branch_it == insts_to_send->end()) {
+            return;
+        }
+
         BranchPredictor::DefaultInput input;
         input.fetch_PC = (*insts_to_send->begin())->getPC();
         const auto prediction = branch_predictor_->getPrediction(input);
 
-        bool found_branch = false;
-        uint32_t actual_branch_idx = num_insts_to_fetch_;
-        uint64_t actual_next_pc = input.fetch_PC + num_insts_to_fetch_ * BranchPredictorIFType::bytes_per_inst;
-        InstPtr actual_branch_inst;
-
         // Predictor contract: one prediction per fetch packet, keyed by fetch PC.
         // We therefore train/evaluate against the first branch in this packet.
-        uint32_t i = 0;
-        for (auto it = insts_to_send->begin(); it != insts_to_send->end(); ++it, ++i)
-        {
-            const auto & inst = *it;
-            if (!inst->isBranch()) {
-                continue;
-            }
-
-            found_branch = true;
-            actual_branch_idx = i;
-            actual_branch_inst = inst;
-            if (inst->isTakenBranch()) {
-                actual_next_pc = inst->getTargetVAddr();
-            } else {
-                actual_next_pc = inst->getPC() + BranchPredictorIFType::bytes_per_inst;
-            }
-            break;
-        }
-
-        // No branch in this group means there is nothing to train or score.
-        if (!found_branch) {
-            return;
-        }
+        const uint32_t actual_branch_idx = std::distance(insts_to_send->begin(), branch_it);
+        const InstPtr actual_branch_inst = *branch_it;
+        
+        const uint64_t actual_next_pc = actual_branch_inst->isTakenBranch() ?
+            actual_branch_inst->getTargetVAddr() :
+            (actual_branch_inst->getPC() + BranchPredictorIFType::bytes_per_inst);
 
         BranchPredictor::DefaultUpdate update;
         update.fetch_PC = input.fetch_PC;

@@ -95,7 +95,7 @@ namespace BranchPredictor
         uint64_t btbCacheAddress_(uint64_t fetch_pc) const;
         uint32_t bhtIndex_(uint64_t fetch_pc) const;
 
-        bool btbLookup_(uint64_t fetch_pc, BTBEntry * entry);
+        BTBEntry* btbLookup_(uint64_t fetch_pc);
         void btbUpdate_(uint64_t fetch_pc, const BTBEntry & entry);
         bool bhtPredict_(uint64_t fetch_pc) const;
         void bhtUpdate_(uint64_t fetch_pc, bool actually_taken);
