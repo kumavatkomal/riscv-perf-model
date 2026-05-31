@@ -42,17 +42,34 @@ endif()
 
 ## whisper
 if(DEFAULT_BACKEND STREQUAL "all" OR DEFAULT_BACKEND STREQUAL "whisper" OR NOT DEFAULT_BACKEND)
-    message(STATUS "EDM: Fetching Whisper into ${CMAKE_BINARY_DIR}/_deps/whisper-src")
+    set(WHISPER_ADAPTER_DIR ${CMAKE_SOURCE_DIR}/core/edm/adapters/Whisper)
+    set(WHISPER_SOURCE_DIR ${WHISPER_ADAPTER_DIR}/whisper)
 
-    FetchContent_Declare(whisper
+    message(STATUS "EDM: Fetching Whisper into ${CMAKE_SOURCE_DIR}/core/edm/adapters/Whisper/whisper")
+
+    # Whisper uses GNUmakefile, so we use ExternalProject instead of FetchContent
+    include(ExternalProject)
+    
+    ExternalProject_Add(whisper_external
         GIT_REPOSITORY https://github.com/tenstorrent/whisper.git
         GIT_TAG        master
-        GIT_SHALLOW    TRUE
-        GIT_PROGRESS  TRUE
+        PREFIX         ${CMAKE_BINARY_DIR}/whisper-build
+        SOURCE_DIR     ${WHISPER_SOURCE_DIR}
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} -C ${WHISPER_SOURCE_DIR} -j${CMAKE_BUILD_PARALLEL_LEVEL}
+        BUILD_IN_SOURCE 1
+        INSTALL_COMMAND ""
+        UPDATE_COMMAND ""
+        LOG_DOWNLOAD ON
+        LOG_BUILD ON
     )
-    FetchContent_MakeAvailable(whisper)
 
-    # list(APPEND EDM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/adapters/Whisper/Whisper.cpp)
+    set(WHISPER_LIB "${WHISPER_SOURCE_DIR}/build-Linux/librvcore.a")
+    
+    message(STATUS "EDM: Whisper will be built at: ${WHISPER_SOURCE_DIR}")
+    message(STATUS "EDM: Whisper library: ${WHISPER_LIB}")
+
+    list(APPEND EDM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/adapters/Whisper/Whisper.cpp)
 endif()
 
 add_library(edm STATIC ${EDM_SOURCES})
@@ -74,6 +91,13 @@ endif()
 
 ## whisper
 if(DEFAULT_BACKEND STREQUAL "all" OR DEFAULT_BACKEND STREQUAL "whisper" OR NOT DEFAULT_BACKEND)
-    target_link_libraries(edm PUBLIC whisper)
+    target_include_directories(edm PUBLIC
+        ${WHISPER_ADAPTER_DIR}
+        ${WHISPER_SOURCE_DIR}
+    )
+    target_link_libraries(edm PUBLIC ${WHISPER_LIB})
     target_compile_definitions(edm PUBLIC WHISPER_AVAILABLE)
+    
+    # Ensure Whisper is built before edm
+    add_dependencies(edm whisper_external)
 endif()

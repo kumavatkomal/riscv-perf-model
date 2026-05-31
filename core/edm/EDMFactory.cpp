@@ -1,5 +1,6 @@
 #include "EDMFactory.hpp"
 #include "Pegasus.hpp"
+#include "Whisper.hpp"
 #include <sparta/utils/SpartaAssert.hpp>
 
 namespace olympia::edm
@@ -34,6 +35,9 @@ namespace olympia::edm
         static bool link = [](){
             EDMBackendFactory::registerBackend("pegasus", [](const std::string & config_file, const std::string& filename) {
                 return std::make_unique<PegasusAdapter>(config_file, filename);
+            });
+            EDMBackendFactory::registerBackend("whisper", [](const std::string & config_file, const std::string& filename) {
+                return std::make_unique<WhisperAdapter>(config_file, filename);
             });
             return true;
         }();
