@@ -8,6 +8,7 @@
 #include "System.hpp"
 #include "Hart.hpp"
 #include "DecodedInst.hpp"
+#include "HartConfig.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -19,10 +20,6 @@ namespace olympia::edm
 {
     WhisperAdapter::WhisperAdapter(const std::string & config_file, const std::string & filename)
     {
-        std::cout << "WhisperAdapter: Initializing with config=" << config_file 
-                  << " file=" << filename << std::endl;
-
-        
         if (config_file.empty())
         {
             throw std::runtime_error("WhisperAdapter: Configuration file is required");
@@ -31,37 +28,68 @@ namespace olympia::edm
         YAML::Node config = YAML::LoadFile(config_file);
         
         // Read Whisper configuration parameters
-        const uint64_t ilimit = config["ilimit"].as<uint64_t>(10000);
         const std::string isa = config["params"]["isa"].as<std::string>("rv64imafdcbv_zicsr_zifencei");
         const uint64_t memory_size = config["params"]["memory_size"].as<uint64_t>(4*1024*1024*1024ULL);
-        const uint64_t page_size = config["params"]["page_size"].as<uint64_t>(4*1024*1024*1024ULL);
+        const uint64_t page_size = config["params"]["page_size"].as<uint64_t>(4096);
         const unsigned cores = config["params"]["cores"].as<unsigned>(1);
         const unsigned harts_per_core = config["params"]["harts_per_core"].as<unsigned>(1);
 
-        std::cout << "WhisperAdapter: Config - ISA=" << isa 
-                  << " Memory=" << (memory_size / (1024*1024*1024)) << "GB"
-                  << " Cores=" << cores << " Harts=" << harts_per_core
-                  << " ilimit=" << ilimit << std::endl;
-
-        // Initialize Whisper System with configured parameters
+        // Initialize Whisper System
+        // Note: Building Whisper with MEM_CALLBACKS=0 to avoid ELFIO crash
         whisper_system_ = std::make_unique<WdRiscv::System<uint64_t>>(
-            cores,          // Number of cores (from config)
-            harts_per_core, // Number of harts per core (from config)
-            0,              // Hart ID offset
-            memory_size,    // Memory size from config
-            page_size       // Page size from config
+            cores, harts_per_core, 0, memory_size, page_size
         );
 
-        // Load the ELF file
-        if (!filename.empty())
+        // Configure harts using HartConfig (production approach)
+        WdRiscv::HartConfig hart_config;
+        
+        for (unsigned i = 0; i < cores * harts_per_core; ++i)
         {
-            if (!whisper_system_->loadElfFiles({filename}, false, true))
+            auto hart = whisper_system_->ithHart(i);
+            if (hart)
             {
-                throw std::runtime_error("WhisperAdapter: Failed to load ELF file: " + filename);
+                // Apply full configuration
+                if (!hart_config.applyConfig(*hart, false, false))
+                {
+                    throw std::runtime_error("WhisperAdapter: Failed to apply hart configuration");
+                }
+                
+                // Configure ISA
+                if (!hart->configIsa(isa, true))
+                {
+                    throw std::runtime_error("WhisperAdapter: Failed to configure ISA");
+                }
+                
+                // Reset hart
+                hart->reset();
+                hart->filterMachineInterrupts(false);
             }
         }
 
-        std::cout << "WhisperAdapter: Initialization complete" << std::endl;
+        // Configure memory
+        if (!hart_config.configMemory(*whisper_system_, false))
+        {
+            throw std::runtime_error("WhisperAdapter: Failed to configure memory");
+        }
+
+        // Store filename for deferred loading (workaround for ELFIO stack issue)
+        elf_filename_ = filename;
+    }
+    
+    void WhisperAdapter::loadElfFile()
+    {
+        // Load ELF file after construction completes
+        // This is a workaround for ELFIO library stack overflow when called from constructor
+        if (!elf_filename_.empty())
+        {
+            std::cout << "WhisperAdapter: Loading ELF file: " << elf_filename_ << std::endl;
+            if (!whisper_system_->loadElfFiles({elf_filename_}, false, false))
+            {
+                throw std::runtime_error("WhisperAdapter: Failed to load ELF file: " + elf_filename_);
+            }
+            std::cout << "WhisperAdapter: ELF file loaded successfully" << std::endl;
+            elf_filename_.clear();  // Clear after loading
+        }
     }
 
     WhisperAdapter::~WhisperAdapter()
@@ -240,14 +268,6 @@ namespace olympia::edm
         return whisper_system_->ithHart(global_hart_id);
     }
 
-    // Internal checkpoint structure for Whisper state
-    struct WhisperCheckpoint
-    {
-        uint64_t pc;
-        std::vector<uint64_t> int_regs;
-        std::vector<uint64_t> fp_regs;
-    };
-
     InstructionInfo WhisperAdapter::extractInstructionInfo_(const std::shared_ptr<WdRiscv::Hart<uint64_t>>& hart, uint64_t uid)
     {
         InstructionInfo info;
@@ -290,11 +310,13 @@ namespace olympia::edm
             
             // Get the loaded value from the destination register
             // (The load instruction writes the loaded value to a register)
-            if (int_reg >= 0)
+            uint64_t prev_val = 0;
+            int dest_reg = hart->lastIntReg(prev_val);
+            if (dest_reg >= 0)
             {
                 // The loaded value is now in the destination register
                 uint64_t loaded_value = 0;
-                hart->peekIntReg(int_reg, loaded_value);
+                hart->peekIntReg(dest_reg, loaded_value);
                 mem.value.resize(ldst_size);
                 std::memcpy(mem.value.data(), &loaded_value, ldst_size);
             }

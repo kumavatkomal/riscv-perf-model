@@ -113,6 +113,14 @@ namespace olympia::edm
          */
         void flush(CoreId core_id, HartId hart_id, const EDMCheckpoint & checkpoint) override;
 
+        /**
+         * @brief Load ELF file (deferred from constructor)
+         * 
+         * This must be called after construction to load the ELF file.
+         * Workaround for ELFIO library stack overflow when called from constructor.
+         */
+        void loadElfFile();
+
       private:
         // Internal checkpoint structure for Whisper state
         struct WhisperCheckpoint
@@ -173,6 +181,9 @@ namespace olympia::edm
 
         // Simulation finished flag
         mutable bool finished_ = false;
+        
+        // ELF filename for deferred loading
+        std::string elf_filename_;
     };
 
 } // namespace olympia::edm

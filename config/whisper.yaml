@@ -4,6 +4,6 @@ ilimit: 10000
 params:
   isa: "rv64imafdcbv_zicsr_zifencei"
   memory_size: 4294967296  # 4GB
-  page_size: 4294967296    # Same as memory for simplicity
+  page_size: 4096          # 4KB page size (standard)
   cores: 1                 # Number of cores (default: 1)
   harts_per_core: 1        # Harts per core (default: 1)

@@ -56,7 +56,7 @@ if(DEFAULT_BACKEND STREQUAL "all" OR DEFAULT_BACKEND STREQUAL "whisper" OR NOT D
         PREFIX         ${CMAKE_BINARY_DIR}/whisper-build
         SOURCE_DIR     ${WHISPER_SOURCE_DIR}
         CONFIGURE_COMMAND ""
-        BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} -C ${WHISPER_SOURCE_DIR} -j${CMAKE_BUILD_PARALLEL_LEVEL}
+        BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} -C ${WHISPER_SOURCE_DIR} -j${CMAKE_BUILD_PARALLEL_LEVEL} MEM_CALLBACKS=0
         BUILD_IN_SOURCE 1
         INSTALL_COMMAND ""
         UPDATE_COMMAND ""
@@ -65,16 +65,22 @@ if(DEFAULT_BACKEND STREQUAL "all" OR DEFAULT_BACKEND STREQUAL "whisper" OR NOT D
     )
 
     set(WHISPER_LIB "${WHISPER_SOURCE_DIR}/build-Linux/librvcore.a")
+    set(WHISPER_VIRTMEM_LIB "${WHISPER_SOURCE_DIR}/virtual_memory/libvirtual_memory.a")
+    set(WHISPER_SOFTFLOAT_LIB "${WHISPER_SOURCE_DIR}/third_party/softfloat/build/RISCV-GCC/softfloat.a")
+    set(WHISPER_PCI_LIB "${WHISPER_SOURCE_DIR}/pci/libpci.a")
     
     message(STATUS "EDM: Whisper will be built at: ${WHISPER_SOURCE_DIR}")
     message(STATUS "EDM: Whisper library: ${WHISPER_LIB}")
+    message(STATUS "EDM: Whisper VirtMem library: ${WHISPER_VIRTMEM_LIB}")
+    message(STATUS "EDM: Whisper SoftFloat library: ${WHISPER_SOFTFLOAT_LIB}")
+    message(STATUS "EDM: Whisper PCI library: ${WHISPER_PCI_LIB}")
 
     list(APPEND EDM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/adapters/Whisper/Whisper.cpp)
 endif()
 
 add_library(edm STATIC ${EDM_SOURCES})
 
-target_compile_features(edm PUBLIC cxx_std_17)
+target_compile_features(edm PUBLIC cxx_std_20)
 target_include_directories(edm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 ## pegasus
@@ -95,7 +101,7 @@ if(DEFAULT_BACKEND STREQUAL "all" OR DEFAULT_BACKEND STREQUAL "whisper" OR NOT D
         ${WHISPER_ADAPTER_DIR}
         ${WHISPER_SOURCE_DIR}
     )
-    target_link_libraries(edm PUBLIC ${WHISPER_LIB})
+    target_link_libraries(edm PUBLIC ${WHISPER_LIB} ${WHISPER_VIRTMEM_LIB} ${WHISPER_SOFTFLOAT_LIB} ${WHISPER_PCI_LIB})
     target_compile_definitions(edm PUBLIC WHISPER_AVAILABLE)
     
     # Ensure Whisper is built before edm

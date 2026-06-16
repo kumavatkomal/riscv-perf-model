@@ -1,6 +1,10 @@
 #include "EDMFactory.hpp"
+#ifdef PEGASUS_AVAILABLE
 #include "Pegasus.hpp"
+#endif
+#ifdef WHISPER_AVAILABLE
 #include "Whisper.hpp"
+#endif
 #include <sparta/utils/SpartaAssert.hpp>
 
 namespace olympia::edm
@@ -33,12 +37,18 @@ namespace olympia::edm
     {
 
         static bool link = [](){
+#ifdef PEGASUS_AVAILABLE
             EDMBackendFactory::registerBackend("pegasus", [](const std::string & config_file, const std::string& filename) {
                 return std::make_unique<PegasusAdapter>(config_file, filename);
             });
+#endif
+#ifdef WHISPER_AVAILABLE
             EDMBackendFactory::registerBackend("whisper", [](const std::string & config_file, const std::string& filename) {
-                return std::make_unique<WhisperAdapter>(config_file, filename);
+                auto adapter = std::make_unique<WhisperAdapter>(config_file, filename);
+                adapter->loadElfFile();  // Deferred ELF loading (workaround for ELFIO stack issue)
+                return adapter;
             });
+#endif
             return true;
         }();
         (void)link;
